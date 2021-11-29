@@ -1,0 +1,70 @@
+// Import
+@import './_variables';
+
+// Text
+.text-disabled {
+  color: #999;
+}
+
+// Text Size
+@each $name, $size in $text-size-list {
+  .text-#{$name} {
+    font-size: $size;
+  }
+}
+
+// Align
+@each $name, $align in $h-align-list {
+  .text-#{$name} {
+    text-align: $align;
+  }
+}
+
+// BG & FG
+@each $name, $color in $color-list {
+  .fg-#{$name} {
+    color: $color;
+  }
+
+  .bg-#{$name} {
+    color: $color;
+  }
+}
+
+// Font Weight
+@each $name, $weight in $font-weight-list {
+  .font-weight-#{$name} {
+    font-weight: $weight;
+  }
+
+  .font-weight-#{$name} {
+    font-weight: $weight;
+  }
+}
+
+@each $name, $value in $spacing-list {
+  @each $key, $position in $position-list {
+    .p#{$key}-#{$name} {
+      padding-#{$position}: $value;
+    }
+    .px#{$key}-#{$name} {
+      padding-left: $value;
+      padding-right: $value;
+    }
+    .py#{$key}-#{$name} {
+      padding-top: $value;
+      padding-bottom: $value;
+    }
+    .m#{$key}-#{$name} {
+      margin-#{$position}: $value;
+    }
+    .mx#{$key}-#{$name} {
+      margin-left: $value;
+      margin-right: $value;
+    }
+    .my#{$key}-#{$name} {
+      margin-top: $value;
+      margin-bottom: $value;
+    }
+  }
+}

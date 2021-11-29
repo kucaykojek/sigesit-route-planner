@@ -1,0 +1,46 @@
+// MIXINS - @author Asep Fajar Nugraha <kucaykojek@gmail.com>
+
+// Prefix
+$prefix-list: ( webkit, moz, ms, o );
+
+@mixin prefix($property, $value) {
+  -webkit-appearance: none;
+
+  @each $prefix in $prefix-list {
+    #{'-' + $prefix + '-' + $property}: $value;
+  }
+
+  #{$property}: $value;
+}
+
+@mixin noselect() {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}
+
+// Clearfix
+@mixin clearfix {
+  &::before,
+  &::after {
+    content: " ";
+    display: table;
+  }
+  &::after { clear: both; }
+}
+
+// Ellipsis
+@mixin ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-wrap: break-word;
+  white-space: nowrap;
+}
+
+@function ellipsis-height($text-size, $line, $line-height) {
+  @return ($text-size * $line * $line-height);
+}

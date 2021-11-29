@@ -1,0 +1,55 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;1,400;1,600&display=swap');
+
+// Default Variables
+$font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+
+$header-height: 60px;
+$sidebar-width: 350px;
+
+$color-branding-red: #B52125;
+$color-branding-green: #00542D;
+$color-branding-blue: #1D6986;
+
+$color-list: (
+  'branding-red':    $color-branding-red,
+  'branding-green':  $color-branding-green,
+  'branding-blue':   $color-branding-blue
+);
+
+$font-weight-list: (
+  'normal':  400,
+  'bold':    600
+);
+
+$spacing-list: (
+  '0':   0,
+  '1':   .25rem,
+  '2':   .5rem,
+  '3':   .75rem,
+  '4':   1rem,
+  '5':   1.25rem,
+  '6':   1.5rem,
+  '7':   2rem
+);
+
+$position-list: (
+  't': 'top',
+  'r': 'right',
+  'b': 'bottom',
+  'l': 'left'
+);
+
+$h-align-list: (
+  'left': left,
+  'right': right,
+  'center': center
+);
+
+$text-size-list: (
+  'xs': .75rem,
+  'sm': .9rem,
+  'md': 1rem,
+  'lg': 1.1rem,
+  'xl': 1.25rem,
+  'xxl': 1.5rem
+);
