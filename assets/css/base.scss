@@ -35,7 +35,7 @@ hr {
 }
 
 strong, b {
-  font-weight: 600;
+  font-weight: 600 !important;
 }
 
 header {
@@ -124,7 +124,12 @@ main {
   }
 
   &:hover {
-  box-shadow: inset 0 0 6px rgba($color: #000000, $alpha: .1);
+    box-shadow: inset 0 0 6px rgba($color: #000000, $alpha: .1);
+  }
+
+  &-blue {
+    background: $color-branding-blue;
+    color: #fff;
   }
 }
 
@@ -155,12 +160,13 @@ main {
     position: relative;
     height: calc(100% + 3rem);
     margin: -1.5rem;
-    padding: 1.5rem 1.5rem calc(1.5rem + 30px) calc(1.5rem + 7.5px);
+    padding: 1.5rem 1.5rem 0 calc(1.5rem + 7.5px);
     overflow: hidden;
     overflow-y: auto;
 
     > ul {
       border-left: 2px solid #ddd;
+      padding-bottom: 30px;
 
       li {
         position: relative;
@@ -169,30 +175,8 @@ main {
         padding-left: 1.5rem;
         margin-bottom: 1rem;
 
-        &:first-child {
-          &::before {
-            position: absolute;
-            top: 0;
-            left: -2px;
-            width: 2px;
-            height: 50%;
-            background: #fff;
-            content: "";
-          }
-        }
-
         &:last-child {
           margin-bottom: 0;
-
-          &::after {
-            position: absolute;
-            bottom: 0;
-            left: -2px;
-            width: 2px;
-            height: 50%;
-            background: #fff;
-            content: "";
-          }
         }
       }
     }
@@ -221,6 +205,16 @@ main {
 
     &.finish {
       color: $color-branding-blue;
+    }
+
+    &::before {
+      position: absolute;
+      top: 0;
+      left: -2px;
+      width: 2px;
+      height: 50%;
+      background: #fff;
+      content: "";
     }
   }
 

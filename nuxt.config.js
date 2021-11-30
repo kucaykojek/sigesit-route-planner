@@ -1,13 +1,9 @@
-import dotenv from 'dotenv'
-
-dotenv.config()
-
 export default {
   server: {
     host: '0.0.0.0',
     port: process.env.PORT || 3000
   },
-  env: {
+  publicRuntimeConfig: {
     ORS_API_URL: process.env.ORS_API_URL,
     ORS_API_KEY: process.env.ORS_API_KEY,
     OSRM_API_URL: process.env.OSRM_API_URL
@@ -33,7 +29,8 @@ export default {
   },
   css: [
     '~/assets/css/base.scss',
-    '~/assets/css/utils.scss'
+    '~/assets/css/utils.scss',
+    '~/assets/css/override.scss'
   ],
   plugins: [
     { src: '~/plugins/third-party', mode: 'client' },
@@ -45,9 +42,16 @@ export default {
   ],
   modules: [
     '@nuxtjs/axios',
-    'nuxt-leaflet'
+    'nuxt-leaflet',
+    'vue-sweetalert2/nuxt'
   ],
-  axios: {},
   build: {
+  },
+  axios: {},
+  sweetalert: {
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000
   }
 }

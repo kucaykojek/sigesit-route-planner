@@ -5,151 +5,161 @@
       <div ref="routePlanner" class="route-planner">
         <div ref="routePlannerExpander" class="route-planner__expander" @touchstart="handleExpandPlanner()"></div>
         <div class="route-planner__list">
-        <ul>
-          <li>
-            <div class="route-planner__icon start"><i class="fas fa-circle"></i></div>
-            <div class="route-planner__card">
-              <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik Awal</div>
-              <div v-if="hasStartPoint" class="mt-2 text-xs">
-                <div>{{ points.start.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="clearPoint('start')"
-                >
-                  <i class="fas fa-edit fg-branding-green mr-2"></i> Ubah
-                </button>
+          <ul>
+            <li>
+              <div class="route-planner__icon start"><i class="fas fa-circle"></i></div>
+              <div class="route-planner__card">
+                <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik Awal</div>
+                <div v-if="hasStartPoint" class="mt-2 text-xs">
+                  <div>{{ points.start.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="clearPoint('start')"
+                  >
+                    <i class="fas fa-edit fg-branding-green mr-2"></i> Ubah
+                  </button>
+                </div>
+                <div v-else-if="hasDraftPoint && pointOnEdit === 'start'" class="mt-2 text-xs">
+                  <div>{{ points.draft.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="setPoint()"
+                  >
+                    <i class="fas fa-check fg-branding-green mr-2"></i> Konfirmasi
+                  </button>
+                </div>
+                <template v-else>
+                  <button
+                    type="button"
+                    class="btn btn-block"
+                    @click="createStartPoint(true)"
+                  >
+                    <i class="fas fa-crosshairs fg-branding-green mr-2"></i> Lokasi Saya
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="createStartPoint()"
+                  >
+                    <i class="fas fa-map fg-branding-green mr-2"></i> Pilih Lewat Peta
+                  </button>
+                </template>
               </div>
-              <div v-else-if="hasDraftPoint && pointOnEdit === 'start'" class="mt-2 text-xs">
-                <div>{{ points.draft.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="setPoint()"
-                >
-                  <i class="fas fa-check fg-branding-green mr-2"></i> Konfirmasi
-                </button>
+            </li>
+            <li
+              v-for="(job, jobIndex) in points.jobs"
+              :key="`card-jobs-${jobIndex}`"
+            >
+              <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
+              <div class="route-planner__card">
+                <div class="font-weight-bold mb-4">
+                  <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ jobIndex + 1 }}
+                </div>
+                <div class="mt-2 text-xs">
+                  <div>{{ job.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="deleteJobPoint(jobIndex)"
+                  >
+                    <i class="fas fa-trash fg-branding-red mr-2"></i> Hapus
+                  </button>
+                </div>
               </div>
-              <template v-else>
-                <button
-                  type="button"
-                  class="btn btn-block"
-                  @click="createStartPoint(true)"
-                >
-                  <i class="fas fa-crosshairs fg-branding-green mr-2"></i> Lokasi Saya
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="createStartPoint()"
-                >
-                  <i class="fas fa-map fg-branding-green mr-2"></i> Pilih Lewat Peta
-                </button>
-              </template>
-            </div>
-          </li>
-          <li
-            v-for="(job, jobIndex) in points.jobs"
-            :key="`card-jobs-${jobIndex}`"
-          >
-            <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
-            <div class="route-planner__card">
-              <div class="font-weight-bold mb-4">
-                <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ jobIndex + 1 }}
+            </li>
+            <li>
+              <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
+              <div class="route-planner__card">
+                <div class="font-weight-bold mb-4">
+                  <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ points.jobs.length + 1 }}
+                </div>
+                <div v-if="hasDraftPoint && pointOnEdit === 'jobs'" class="mt-2 text-xs">
+                  <div>{{ points.draft.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="setPoint()"
+                  >
+                    <i class="fas fa-check fg-branding-red mr-2"></i> Konfirmasi
+                  </button>
+                </div>
+                <template v-else>
+                  <button
+                    type="button"
+                    class="btn btn-block"
+                    :disabled="!hasStartPoint"
+                    @click="openQrScanner()"
+                  >
+                    <i class="fas fa-qrcode fg-branding-red mr-2"></i> Pilih Lewat Scan QR
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    :disabled="!hasStartPoint"
+                    @click="createJobPoint()"
+                  >
+                    <i class="fas fa-map fg-branding-red mr-2"></i> Pilih Lewat Peta
+                  </button>
+                </template>
               </div>
-              <div class="mt-2 text-xs">
-                <div>{{ job.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="deleteJobPoint(jobIndex)"
-                >
-                  <i class="fas fa-trash fg-branding-red mr-2"></i> Hapus
-                </button>
+            </li>
+            <li>
+              <div class="route-planner__icon finish"><i class="fas fa-circle"></i></div>
+              <div class="route-planner__card">
+                <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
+                <div v-if="hasFinishPoint" class="mt-2 text-xs">
+                  <div>{{ points.finish.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="clearPoint('finish')"
+                  >
+                    <i class="fas fa-edit fg-branding-blue mr-2"></i> Ubah
+                  </button>
+                </div>
+                <div v-else-if="hasDraftPoint && pointOnEdit === 'finish'" class="mt-2 text-xs">
+                  <div>{{ points.draft.address }}</div>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    @click="setPoint()"
+                  >
+                    <i class="fas fa-check fg-branding-blue mr-2"></i> Konfirmasi
+                  </button>
+                </div>
+                <template v-else>
+                  <button
+                    type="button"
+                    class="btn btn-block"
+                    :disabled="!hasJobsPoint"
+                    @click="createFinishPoint(true)"
+                  >
+                    <i class="fas fa-copy fg-branding-blue mr-2"></i> Seperti Titik Awal
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-block mt-2"
+                    :disabled="!hasJobsPoint"
+                    @click="createFinishPoint()"
+                  >
+                    <i class="fas fa-map fg-branding-blue mr-2"></i> Pilih Lewat Peta
+                  </button>
+                </template>
               </div>
-            </div>
-          </li>
-          <li>
-            <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
-            <div class="route-planner__card">
-              <div class="font-weight-bold mb-4">
-                <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ points.jobs.length + 1 }}
-              </div>
-              <div v-if="hasDraftPoint && pointOnEdit === 'jobs'" class="mt-2 text-xs">
-                <div>{{ points.draft.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="setPoint()"
-                >
-                  <i class="fas fa-check fg-branding-red mr-2"></i> Konfirmasi
-                </button>
-              </div>
-              <template v-else>
-                <button
-                  type="button"
-                  class="btn btn-block"
-                  :disabled="!hasStartPoint"
-                  @click="openQrScanner()"
-                >
-                  <i class="fas fa-qrcode fg-branding-red mr-2"></i> Pilih Lewat Scan QR
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  :disabled="!hasStartPoint"
-                  @click="createJobPoint()"
-                >
-                  <i class="fas fa-map fg-branding-red mr-2"></i> Pilih Lewat Peta
-                </button>
-              </template>
-            </div>
-          </li>
-          <li>
-            <div class="route-planner__icon finish"><i class="fas fa-circle"></i></div>
-            <div class="route-planner__card">
-              <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
-              <div v-if="hasFinishPoint" class="mt-2 text-xs">
-                <div>{{ points.finish.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="clearPoint('finish')"
-                >
-                  <i class="fas fa-edit fg-branding-blue mr-2"></i> Ubah
-                </button>
-              </div>
-              <div v-else-if="hasDraftPoint && pointOnEdit === 'finish'" class="mt-2 text-xs">
-                <div>{{ points.draft.address }}</div>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  @click="setPoint()"
-                >
-                  <i class="fas fa-check fg-branding-blue mr-2"></i> Konfirmasi
-                </button>
-              </div>
-              <template v-else>
-                <button
-                  type="button"
-                  class="btn btn-block"
-                  :disabled="!hasJobsPoint"
-                  @click="createFinishPoint(true)"
-                >
-                  <i class="fas fa-copy fg-branding-blue mr-2"></i> Seperti Titik Awal
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-block mt-2"
-                  :disabled="!hasJobsPoint"
-                  @click="createFinishPoint()"
-                >
-                  <i class="fas fa-map fg-branding-blue mr-2"></i> Pilih Lewat Peta
-                </button>
-              </template>
-            </div>
-          </li>
-        </ul>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="btn btn-block btn-blue"
+                :disabled="!hasStartPoint || !hasFinishPoint || !hasJobsPoint"
+                @click="handleGenerateRoute()"
+              >
+                <i class="fas fa-route mr-2"></i> Tampilkan Rute Perjalanan
+              </button>
+            </li>
+          </ul>
         </div>
       </div>
       <div class="route-monitor"></div>
@@ -211,14 +221,6 @@
                 />
               </l-marker>
             </l-feature-group>
-            <l-control position="topright">
-              <button
-                type="button"
-                class="btn"
-                :disabled="!hasStartPoint || !hasFinishPoint || !hasJobsPoint"
-                @click="handleGenerateRoute()"
-              >Generate Route</button>
-            </l-control>
             <l-polyline
               v-for="(line, lineIndex) in lines"
               :key="`route-line-${lineIndex}`"
@@ -242,7 +244,7 @@ export default {
   data() {
     return {
       map: {
-        center: [-6.905304,107.630999],
+        center: [-6.905304, 107.630999],
         options: {
           zoomControl: false
         }
@@ -274,7 +276,7 @@ export default {
           id: null,
           lat: null,
           lng: null,
-          address: null,
+          address: null
         },
         jobs: [],
         finish: {
@@ -294,9 +296,6 @@ export default {
     }
   },
   computed: {
-    dynamicAnchor() {
-      return [this.icon.size / 2, this.icon.size * 1.15];
-    },
     hasDraftPoint() {
       return (!!this.points.draft.lat && !!this.points.draft.lng)
     },
@@ -411,13 +410,13 @@ export default {
     },
     setPoint() {
       switch (this.pointOnEdit) {
-        case 'start':
-        case 'finish':
-          this.points[this.pointOnEdit] = cloneDeep(omit(this.points.draft, ['type']))
-          break
-        default:
-          this.points[this.pointOnEdit].push(cloneDeep(omit(this.points.draft, ['type'])))
-          break
+      case 'start':
+      case 'finish':
+        this.points[this.pointOnEdit] = cloneDeep(omit(this.points.draft, ['type']))
+        break
+      default:
+        this.points[this.pointOnEdit].push(cloneDeep(omit(this.points.draft, ['type'])))
+        break
       }
 
       this.clearPoint('draft')
@@ -425,12 +424,12 @@ export default {
     },
     getMarker() {
       switch (this.pointOnEdit) {
-        case 'start':
-          return '/marker-pin-start.svg'
-        case 'finish':
-          return '/marker-pin-finish.svg'
-        default:
-          return '/marker-pin.svg'
+      case 'start':
+        return '/marker-pin-start.svg'
+      case 'finish':
+        return '/marker-pin-finish.svg'
+      default:
+        return '/marker-pin.svg'
       }
     },
     openQrScanner() {
@@ -438,7 +437,11 @@ export default {
         this.pointOnEdit = 'jobs'
         this.isOpenQrScanner = true
       } catch (error) {
-        console.error('setJobPoint', error)
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
       }
     },
     async handleMapClick(e) {
@@ -478,10 +481,10 @@ export default {
           ]
         }
         const headers = {
-          'Authorization': process.env.ORS_API_KEY
+          'Authorization': this.$config.ORS_API_KEY
         }
         const { data } = await this.$axios.post(
-          `${ORS_API_URL}/optimization`,
+          `${this.$config.ORS_API_URL}/optimization`,
           payload,
           { headers }
         )
@@ -489,9 +492,12 @@ export default {
         this.routes = Array.isArray(get(data, 'routes[0].steps'))
           ? get(data, 'routes[0].steps').filter(step => step.type === 'job')
           : []
-
       } catch (error) {
-        console.error('getOptimizeRoute', error)
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
       }
     },
     async handleGenerateRoute() {
@@ -503,7 +509,7 @@ export default {
         this.routes.forEach((current) => {
           if (before) {
             const points = `${before.location.join(',')};${current.location.join(',')}`
-            promises.push(this.$axios.get(`${OSRM_API_URL}/route/v1/driving/${points}?geometries=geojson`))
+            promises.push(this.$axios.get(`${this.$config.OSRM_API_URL}/route/v1/driving/${points}?geometries=geojson`))
           }
 
           before = current
@@ -512,13 +518,17 @@ export default {
         const responses = await Promise.all(promises)
         const routeLines = responses.map(val => val.data)
         this.lines = routeLines.map(line => {
-          const coordinates = get(line, `routes[0].geometry.coordinates`)
+          const coordinates = get(line, 'routes[0].geometry.coordinates')
           return coordinates
             ? coordinates.map(v => [v[1], v[0]])
             : []
         })
       } catch (error) {
-        console.error('handleGenerateRoute', error)
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
       }
     },
     async searchAddress(search) {
@@ -537,7 +547,11 @@ export default {
           }
         }
       } catch (error) {
-        console.error(error)
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
         return null
       } finally {
         this.isSearchingPlace = false
@@ -560,7 +574,11 @@ export default {
         }
 
       } catch (error) {
-        console.error(error)
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: error.message
+        })
       } finally {
         this.isOpenQrScanner = false
       }

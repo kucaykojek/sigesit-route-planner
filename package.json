@@ -19,7 +19,8 @@
     "nuxt": "^2.15.7",
     "nuxt-leaflet": "^0.0.27",
     "uuid": "^8.3.2",
-    "vue-qrcode-reader": "^3.0.6"
+    "vue-qrcode-reader": "^3.0.6",
+    "vue-sweetalert2": "^5.0.2"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.14.7",
