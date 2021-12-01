@@ -1,7 +1,14 @@
 <template>
   <div class="main-wrapper noselect">
-    <header>Navbar</header>
-    <aside>
+    <header>
+      <a class="header__nav" @click="header.nav.action">
+        <i :class="header.nav.icon"></i>
+      </a>
+      <div class="header__title">
+        {{ header.title }}
+      </div>
+    </header>
+    <aside v-if="!isShowingQrScanner && !isDrafting">
       <div v-if="!hasRoutes" ref="routePlanner" class="route-planner">
         <div ref="routePlannerExpander" class="route-planner__expander" @touchstart="handleExpandPlanner()"></div>
         <div class="route-planner__list">
@@ -99,7 +106,7 @@
                     type="button"
                     class="btn btn-block"
                     :disabled="!hasStartPoint"
-                    @click="openQrScanner()"
+                    @click="toggleQrScanner()"
                   >
                     <i class="fas fa-qrcode fg-branding-red mr-2"></i> Scan QR Code
                   </button>
@@ -236,7 +243,7 @@
         </div>
       </div>
     </aside>
-    <main>
+    <main v-show="!isShowingQrScanner" :class="{ 'is-drafting': isDrafting }">
       <div class="map-wrapper">
         <div v-if="mapMasking" class="map-masking">
           <div class="map-masking__content">{{ mapMasking }}</div>
@@ -246,6 +253,27 @@
         </client-only>
       </div>
     </main>
+    <qr-scanner v-if="isShowingQrScanner" />
+    <transition name="slide">
+      <section
+        v-if="hasDraftPoint"
+        class="sheet text-sm"
+      >
+        <div>{{ pointDraft.address }}</div>
+        <button
+          type="button"
+          class="btn btn-block mt-4"
+          :class="{
+            'btn-green': draftType === 'start',
+            'btn-blue': draftType === 'finish',
+            'btn-red': draftType === 'jobs'
+          }"
+          @click="setPoint()"
+        >
+          <i class="fas fa-check mr-2"></i> Konfirmasi
+        </button>
+      </section>
+    </transition>
   </div>
 </template>
 
@@ -257,15 +285,25 @@ import gmapsMixins from '~/mixins/gmaps'
 import lineMixins from '~/mixins/lines'
 import pointMixins from '~/mixins/points'
 import routeMixins from '~/mixins/routes'
+import QrScanner from '~/components/QrScanner.vue'
 
 export default {
+  components: { QrScanner },
   mixins: [gmapsMixins, lineMixins, pointMixins, routeMixins],
   data() {
     return {
       map: null,
       lines: [],
       mapClickListener: null,
-      isDraggingPlanner: false
+      isDraggingPlanner: false,
+      isShowingQrScanner: false,
+      header: {
+        nav: {
+          icon: 'fas fa-chevron-left fg-branding-red',
+          action: () => {}
+        },
+        title: 'Rencana Perjalanan'
+      }
     }
   },
   computed: {
@@ -350,7 +388,19 @@ export default {
     formatDuration(duration) {
       return formatNumber((duration / 60), '0') + ' menit'
     },
-    openQrScanner() {},
+    toggleQrScanner() {
+      if (this.isShowingQrScanner) {
+        this.isShowingQrScanner = false
+        this.header.nav.icon = 'fas fa-chevron-left fg-branding-red'
+        this.header.nav.action = () => {}
+        this.header.title = 'Rencana Perjalanan'
+      } else {
+        this.isShowingQrScanner = true
+        this.header.nav.icon = 'fas fa-times fg-gray'
+        this.header.nav.action = () => this.toggleQrScanner()
+        this.header.title = 'Batal'
+      }
+    },
     setShowJobCard() {
       this.showJobCard = true
       this.$nextTick(() => {

@@ -50,7 +50,7 @@ export default {
 <style lang="scss">
 .qr-scanner-wrapper {
   position: absolute;
-  z-index: 999;
+  z-index: 9;
   top: 0;
   left: 0;
   background: white;

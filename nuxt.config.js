@@ -31,6 +31,7 @@ export default {
   css: [
     '~/assets/css/base.scss',
     '~/assets/css/utils.scss',
+    '~/assets/css/animation.scss',
     '~/assets/css/override.scss'
   ],
   plugins: [

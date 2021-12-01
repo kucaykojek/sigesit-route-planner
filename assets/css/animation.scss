@@ -1,0 +1,36 @@
+// Import
+@import './_mixins';
+
+.slide-enter-active {
+  @include prefix(transition-duration, .5s);
+  @include prefix(transition-timing-function, ease-in);
+  // -moz-transition-duration: .5s;
+  // -webkit-transition-duration: .5s;
+  // -o-transition-duration: .5s;
+  // transition-duration: .5s;
+  // -moz-transition-timing-function: ease-in;
+  // -webkit-transition-timing-function: ease-in;
+  // -o-transition-timing-function: ease-in;
+  // transition-timing-function: ease-in;
+}
+
+.slide-leave-active {
+  @include prefix(transition-duration, .5s);
+  @include prefix(transition-timing-function, cubic-bezier(0, 1, 0.5, 1));
+  // -moz-transition-duration: .5s;
+  // -webkit-transition-duration: .5s;
+  // -o-transition-duration: .5s;
+  // transition-duration: .5s;
+  // -moz-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  // -webkit-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  // -o-transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+  // transition-timing-function: cubic-bezier(0, 1, 0.5, 1);
+}
+
+.slide-enter-to, .slide-leave {
+  bottom: 0;
+}
+
+.slide-enter, .slide-leave-to {
+  bottom: -100%;
+}
