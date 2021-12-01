@@ -11,11 +11,14 @@
     "lint": "yarn lint:js"
   },
   "dependencies": {
+    "@googlemaps/js-api-loader": "^1.12.11",
     "@nuxtjs/axios": "^5.13.6",
     "core-js": "^3.15.1",
+    "dayjs": "^1.10.7",
     "dotenv": "^10.0.0",
     "leaflet-geosearch": "^3.6.0",
     "lodash": "^4.17.21",
+    "numeral": "^2.0.6",
     "nuxt": "^2.15.7",
     "nuxt-leaflet": "^0.0.27",
     "uuid": "^8.3.2",

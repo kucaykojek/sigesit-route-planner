@@ -4,6 +4,7 @@ export default {
     port: process.env.PORT || 3000
   },
   publicRuntimeConfig: {
+    GMAPS_API_KEY: process.env.GMAPS_API_KEY,
     ORS_API_URL: process.env.ORS_API_URL,
     ORS_API_KEY: process.env.ORS_API_KEY,
     OSRM_API_URL: process.env.OSRM_API_URL
@@ -34,6 +35,7 @@ export default {
   ],
   plugins: [
     { src: '~/plugins/third-party', mode: 'client' },
+    { src: '~/plugins/googleMaps', mode: 'client' },
     { src: '~/plugins/leafletGeosearch', mode: 'client' }
   ],
   components: true,
@@ -46,6 +48,11 @@ export default {
     'vue-sweetalert2/nuxt'
   ],
   build: {
+    extend (config, { isDev, isClient }) {
+      config.node = {
+        fs: 'empty'
+      }
+    }
   },
   axios: {},
   sweetalert: {

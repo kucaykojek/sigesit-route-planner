@@ -2,7 +2,7 @@
   <div class="main-wrapper noselect">
     <header>Navbar</header>
     <aside>
-      <div ref="routePlanner" class="route-planner">
+      <div v-if="!hasRoutes" ref="routePlanner" class="route-planner">
         <div ref="routePlannerExpander" class="route-planner__expander" @touchstart="handleExpandPlanner()"></div>
         <div class="route-planner__list">
           <ul>
@@ -11,17 +11,17 @@
               <div class="route-planner__card">
                 <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik Awal</div>
                 <div v-if="hasStartPoint" class="mt-2 text-xs">
-                  <div>{{ points.start.address }}</div>
+                  <div>{{ pointStart.address }}</div>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
-                    @click="clearPoint('start')"
+                    @click="updatePoint(pointStart)"
                   >
                     <i class="fas fa-edit fg-branding-green mr-2"></i> Ubah
                   </button>
                 </div>
-                <div v-else-if="hasDraftPoint && pointOnEdit === 'start'" class="mt-2 text-xs">
-                  <div>{{ points.draft.address }}</div>
+                <div v-else-if="hasDraftPoint && draftType === 'start'" class="mt-2 text-xs">
+                  <div>{{ pointDraft.address }}</div>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
@@ -34,14 +34,14 @@
                   <button
                     type="button"
                     class="btn btn-block"
-                    @click="createStartPoint(true)"
+                    @click="getCurrentLocation((coords) => createPoint('start', { lat: coords.latitude, lng: coords.longitude }))"
                   >
                     <i class="fas fa-crosshairs fg-branding-green mr-2"></i> Lokasi Saya
                   </button>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
-                    @click="createStartPoint()"
+                    @click="createPoint('start')"
                   >
                     <i class="fas fa-map fg-branding-green mr-2"></i> Pilih Lewat Peta
                   </button>
@@ -49,7 +49,7 @@
               </div>
             </li>
             <li
-              v-for="(job, jobIndex) in points.jobs"
+              v-for="(job, jobIndex) in pointJobs"
               :key="`card-jobs-${jobIndex}`"
             >
               <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
@@ -62,7 +62,7 @@
                   <button
                     type="button"
                     class="btn btn-block mt-2"
-                    @click="deleteJobPoint(jobIndex)"
+                    @click="deletePoint(job.id)"
                   >
                     <i class="fas fa-trash fg-branding-red mr-2"></i> Hapus
                   </button>
@@ -73,10 +73,10 @@
               <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
               <div class="route-planner__card">
                 <div class="font-weight-bold mb-4">
-                  <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ points.jobs.length + 1 }}
+                  <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ pointJobs.length + 1 }}
                 </div>
-                <div v-if="hasDraftPoint && pointOnEdit === 'jobs'" class="mt-2 text-xs">
-                  <div>{{ points.draft.address }}</div>
+                <div v-if="hasDraftPoint && draftType === 'jobs'" class="mt-2 text-xs">
+                  <div>{{ pointDraft.address }}</div>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
@@ -98,7 +98,7 @@
                     type="button"
                     class="btn btn-block mt-2"
                     :disabled="!hasStartPoint"
-                    @click="createJobPoint()"
+                    @click="createPoint('jobs')"
                   >
                     <i class="fas fa-map fg-branding-red mr-2"></i> Pilih Lewat Peta
                   </button>
@@ -110,17 +110,17 @@
               <div class="route-planner__card">
                 <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
                 <div v-if="hasFinishPoint" class="mt-2 text-xs">
-                  <div>{{ points.finish.address }}</div>
+                  <div>{{ pointFinish.address }}</div>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
-                    @click="clearPoint('finish')"
+                    @click="updatePoint(pointFinish)"
                   >
                     <i class="fas fa-edit fg-branding-blue mr-2"></i> Ubah
                   </button>
                 </div>
-                <div v-else-if="hasDraftPoint && pointOnEdit === 'finish'" class="mt-2 text-xs">
-                  <div>{{ points.draft.address }}</div>
+                <div v-else-if="hasDraftPoint && draftType === 'finish'" class="mt-2 text-xs">
+                  <div>{{ pointDraft.address }}</div>
                   <button
                     type="button"
                     class="btn btn-block mt-2"
@@ -134,7 +134,7 @@
                     type="button"
                     class="btn btn-block"
                     :disabled="!hasJobsPoint"
-                    @click="createFinishPoint(true)"
+                    @click="createPoint('finish', { lat: pointStart.lat, lng: pointStart.lng })"
                   >
                     <i class="fas fa-copy fg-branding-blue mr-2"></i> Seperti Titik Awal
                   </button>
@@ -142,7 +142,7 @@
                     type="button"
                     class="btn btn-block mt-2"
                     :disabled="!hasJobsPoint"
-                    @click="createFinishPoint()"
+                    @click="createPoint('finish')"
                   >
                     <i class="fas fa-map fg-branding-blue mr-2"></i> Pilih Lewat Peta
                   </button>
@@ -154,7 +154,7 @@
                 type="button"
                 class="btn btn-block btn-blue"
                 :disabled="!hasStartPoint || !hasFinishPoint || !hasJobsPoint"
-                @click="handleGenerateRoute()"
+                @click="generateRoutes()"
               >
                 <i class="fas fa-route mr-2"></i> Tampilkan Rute Perjalanan
               </button>
@@ -162,323 +162,304 @@
           </ul>
         </div>
       </div>
-      <div class="route-monitor"></div>
+      <div v-else ref="routeResult" class="route-result">
+        <div class="route-result__list">
+          <ul>
+            <li
+              v-for="(route, routeIndex) in routes"
+              :key="`route-result-${routeIndex}`"
+            >
+              <div v-if="routeIndex > 0" class="route-result__distance">{{ formatDistance(route.distance - routes[routeIndex - 1].distance) }}</div>
+              <div
+                class="route-result__icon"
+                :class="{
+                  'start': routeIndex === 0,
+                  'finish': routeIndex === routes.length - 1
+                }"
+              ><i class="fas fa-circle"></i></div>
+              <div class="route-result__card text-sm">
+                <div class="font-weight-bold mb-1 text-xs">
+                  <span v-if="getPointById(route.id).type === 'start'">Titik Awal</span>
+                  <span v-else-if="getPointById(route.id).type === 'finish'">Titik Akhir</span>
+                  <span v-else>Titik #{{ getPointJobIndexById(route.id) + 1 }}</span>
+                </div>
+
+                {{ getPointById(route.id).address }}
+              </div>
+            </li>
+            <li>
+              <button
+                type="button"
+                class="btn btn-block btn-blue"
+                @click="routes = []"
+              >
+                <i class="fas fa-edit mr-2"></i> Ubah Perjalanan
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
     </aside>
     <main>
       <div class="map-wrapper">
         <client-only>
-          <l-map
-            ref="geolocationMap"
-            :zoom="13"
-            :center="map.center"
-            :options="map.options"
-            @click="handleMapClick($event)"
-          >
-            <l-tile-layer url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"></l-tile-layer>
-            <l-feature-group ref="geolocationGroup">
-              <l-marker
-                v-if="hasDraftPoint"
-                :lat-lng="[points.draft.lat, points.draft.lng]"
-              >
-                <l-icon
-                  :icon-size="marker.icon.dimension"
-                  :icon-anchor="marker.icon.anchor"
-                  :icon-url="points.draft.icon"
-                />
-              </l-marker>
-              <l-marker
-                v-if="hasStartPoint"
-                :lat-lng="[points.start.lat, points.start.lng]"
-              >
-                <l-icon
-                  :icon-size="marker.icon.dimension"
-                  :icon-anchor="marker.icon.anchor"
-                  icon-url="/marker-pin-start.svg"
-                />
-              </l-marker>
-              <template v-for="(job, jobIndex) in points.jobs">
-                <l-marker
-                  :ref="`marker-${jobIndex}`"
-                  :key="`job-marker-${jobIndex}`"
-                  :lat-lng="[job.lat, job.lng]"
-                >
-                  <l-icon
-                    :icon-size="marker.icon.dimension"
-                    :icon-anchor="marker.icon.anchor"
-                    :icon-url="job.icon"
-                  />
-                  <l-popup :options="marker.popup.options"><pre>{{ job }}</pre></l-popup>
-                </l-marker>
-              </template>
-              <l-marker
-                v-if="hasFinishPoint"
-                :lat-lng="[points.finish.lat, points.finish.lng]"
-              >
-                <l-icon
-                  :icon-size="marker.icon.dimension"
-                  :icon-anchor="marker.icon.anchor"
-                  icon-url="/marker-pin-finish.svg"
-                />
-              </l-marker>
-            </l-feature-group>
-            <l-polyline
-              v-for="(line, lineIndex) in lines"
-              :key="`route-line-${lineIndex}`"
-              :lat-lngs="line"
-              color="#B52125"
-            ></l-polyline>
-          </l-map>
+          <div id="geolocationMap" ref="geolocationMap" style="height: 100%"></div>
         </client-only>
       </div>
     </main>
-    <QrScanner v-if="isOpenQrScanner" @result="handleQrResult($event)" />
   </div>
 </template>
 
 <script>
-import cloneDeep from 'lodash/cloneDeep'
 import get from 'lodash/get'
-import omit from 'lodash/omit'
+
+import { formatNumber } from '~/helpers/formatter'
 
 export default {
   data() {
     return {
-      map: {
-        center: [-6.905304, 107.630999],
-        options: {
-          zoomControl: false
-        }
+      gmaps: null,
+      map: null,
+      pointDraft: {
+        id: null,
+        type: null,
+        lat: null,
+        lng: null,
+        address: null
       },
-      marker: {
-        icon: {
-          size: 30,
-          dimension: [30, 30],
-          anchor: [30 / 2, 30 * 1.15]
-        },
-        popup: {
-          options: {
-            closeButton: false
-          }
-        }
-      },
-      pointOnEdit: null,
-      points: {
-        draft: {
-          id: null,
-          type: null,
-          lat: null,
-          lng: null,
-          accuracy: null,
-          address: null,
-          icon: null
-        },
-        start: {
-          id: null,
-          lat: null,
-          lng: null,
-          address: null
-        },
-        jobs: [],
-        finish: {
-          id: null,
-          lat: null,
-          lng: null,
-          address: null
-        }
-      },
+      points: [],
       routes: [],
-      markers: [],
-      lines: [],
-      gps: null,
-      errorGps: null,
-      isOpenQrScanner: false,
-      isDraggingPlanner: false
+      clickListener: null,
+      selectedPointId: null
     }
   },
   computed: {
+    hasRoutes() {
+      return this.routes.length > 0
+    },
+    draftType() {
+      return this.pointDraft.type
+    },
     hasDraftPoint() {
-      return (!!this.points.draft.lat && !!this.points.draft.lng)
+      return (!!this.pointDraft.type && !!this.pointDraft.lat && !!this.pointDraft.lng)
+    },
+    pointJobs() {
+      return this.points.filter(point => point.type === 'jobs')
+    },
+    pointStart() {
+      return this.points.find(point => point.type === 'start') || {}
+    },
+    pointFinish() {
+      return this.points.find(point => point.type === 'finish') || {}
     },
     hasJobsPoint() {
-      return this.points.jobs.length && this.points.jobs.every((job) => !!job.lat && !!job.lng)
+      return this.pointJobs.length > 0
     },
     hasStartPoint() {
-      return (!!this.points.start.lat && !!this.points.start.lng)
+      return Object.keys(this.pointStart).length > 0
     },
     hasFinishPoint() {
-      return (!!this.points.finish.lat && !!this.points.finish.lng)
+      return Object.keys(this.pointFinish).length > 0
     }
   },
   mounted() {
-    document.addEventListener('touchmove', this.handlePointerMove)
-    document.addEventListener('touchend', this.handlePointerUp)
-    document.addEventListener('touchcancel', this.handlePointerUp)
+    // document.addEventListener('touchmove', this.handlePointerMove)
+    // document.addEventListener('touchend', this.handlePointerUp)
+    // document.addEventListener('touchcancel', this.handlePointerUp)
+
+    this.loadMap()
   },
   beforeDestroy() {
-    document.removeEventListener('touchmove', this.handlePointerMove)
-    document.removeEventListener('touchend', this.handlePointerUp)
-    document.removeEventListener('touchcancel', this.handlePointerUp)
+    // document.removeEventListener('touchmove', this.handlePointerMove)
+    // document.removeEventListener('touchend', this.handlePointerUp)
+    // document.removeEventListener('touchcancel', this.handlePointerUp)
   },
   methods: {
-    handlePointerMove(e) {
-      if (this.isDraggingPlanner && get(e, 'touches[0]')) {
-        this.handleResizePlanner(e.touches[0])
-      }
+    loadMap() {
+      this.$gmaps.loader.load().then((google) => {
+        // console.log(e)
+        this.gmaps = google.maps
+        this.map = new this.gmaps.Map(document.getElementById('geolocationMap'), {
+          center: { lat: -6.905304, lng: 107.630999 },
+          zoom: 13,
+          disableDefaultUI: true,
+          styles: [{
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [
+              { visibility: 'off' }
+            ]
+          }]
+        })
+      })
     },
-    handlePointerUp(e) {
-      if (this.isDraggingPlanner) {
-        this.isDraggingPlanner = false
-      }
-    },
-    handleExpandPlanner() {
-      this.isDraggingPlanner = true
-    },
-    handleResizePlanner(e) {
-      if (this.$refs.routePlanner) {
-        if (e.pageY > 70) {
-          const height = (document.body.clientHeight - e.pageY) + 70
-          if (height >= 240) {
-            this.$refs.routePlanner.style.height = `${height}px`
-          }
-        }
-      }
-    },
-    getCurrentLocation() {
+    async getCurrentLocation(callback) {
       if (navigator.geolocation) {
-        return new Promise(function(resolve, reject) {
+        const { coords } = await new Promise(function(resolve, reject) {
           navigator.geolocation.getCurrentPosition(resolve, reject)
         })
+
+        callback(coords)
       } else {
-        throw new Error('Geolocation is not supported by this browser')
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'Geolocation tidak didukung oleh browser ini'
+        })
       }
     },
-    async createStartPoint(withGps = false) {
-      this.pointOnEdit = 'start'
-      this.errorGps = null
-
-      if (withGps) {
-        try {
-          const { coords } = await this.getCurrentLocation()
-          if (coords) {
-            this.map.center = [coords.latitude, coords.longitude]
-            this.points.draft.id = new Date().getTime()
-            this.points.draft.lat = coords.latitude
-            this.points.draft.lng = coords.longitude
-            this.points.draft.accuracy = Math.round(coords.accuracy / 1000)
-            this.points.draft.icon = '/marker-pin-start.svg'
-
-            const address = await this.searchAddress(`${coords.latitude},${coords.longitude}`)
-            this.points.draft.address = get(address, 'label') || null
-
-            if (get(this.$refs, 'geolocationMap.mapObject')) {
-              this.$refs.geolocationMap.mapObject.setView([coords.latitude, coords.longitude], 13)
-            }
-          }
-        } catch (error) {
-          console.error('setStartPoint', error)
-          this.errorGps = error.message
-        }
-      }
-    },
-    createJobPoint() {
+    async getAddress({ lat, lng }) {
       try {
-        this.pointOnEdit = 'jobs'
-      } catch (error) {
-        console.error('setJobPoint', error)
-      }
-    },
-    createFinishPoint(copyStart = false) {
-      this.pointOnEdit = 'finish'
+        const geocoder = new this.gmaps.Geocoder()
+        const { results } = await geocoder.geocode({ location: { lat, lng } })
 
-      if (copyStart) {
-        this.points.finish = {
-          ...cloneDeep(this.points.start),
-          id: new Date().getTime()
-        }
-      }
-    },
-    deleteJobPoint(index) {
-      this.points.jobs.splice(index, 1)
-    },
-    clearPoint(type = 'start') {
-      this.points[type] = {
-        lat: null,
-        lng: null,
-        accuracy: null,
-        icon: null
-      }
-    },
-    setPoint() {
-      switch (this.pointOnEdit) {
-      case 'start':
-      case 'finish':
-        this.points[this.pointOnEdit] = cloneDeep(omit(this.points.draft, ['type']))
-        break
-      default:
-        this.points[this.pointOnEdit].push(cloneDeep(omit(this.points.draft, ['type'])))
-        break
-      }
-
-      this.clearPoint('draft')
-      this.pointOnEdit = null
-    },
-    getMarker() {
-      switch (this.pointOnEdit) {
-      case 'start':
-        return '/marker-pin-start.svg'
-      case 'finish':
-        return '/marker-pin-finish.svg'
-      default:
-        return '/marker-pin.svg'
-      }
-    },
-    openQrScanner() {
-      try {
-        this.pointOnEdit = 'jobs'
-        this.isOpenQrScanner = true
+        return get(results, '[0].formatted_address') || ''
       } catch (error) {
         this.$swal({
           icon: 'error',
           title: 'Error',
-          text: error.message
+          text: 'Gagal mendapatkan alamat lokasi'
+        })
+
+        return ''
+      }
+    },
+    async addMarker({ lat, lng, type, address }) {
+      try {
+        if (this.pointDraft.marker) {
+          await this.removeMarker(this.pointDraft.marker)
+        }
+
+        const marker = new this.gmaps.Marker({
+          position: new this.gmaps.LatLng(lat, lng),
+          title: address,
+          icon: `/marker-pin-${type}.svg`
+        })
+
+        await marker.setMap(this.map)
+        this.map.setCenter(marker.getPosition())
+        this.map.setZoom(17)
+
+        return marker
+      } catch (error) {
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal menambahkan titik lokasi'
+        })
+
+        return null
+      }
+    },
+    removeMarker(marker) {
+      marker.setMap(null)
+    },
+    createPoint(type, data = null) {
+      this.pointDraft.id = new Date().getTime()
+      this.pointDraft.type = type
+
+      if (data) {
+        const params = {
+          lat: data.lat,
+          lng: data.lng,
+          type
+        }
+
+        this.setDraftPoint(params)
+      }
+
+      if (!this.clickListener) {
+        this.map.setOptions({ draggableCursor: 'crosshair' })
+        this.clickListener = this.gmaps.event.addListener(this.map, 'click', (event) => {
+          const position = event.latLng.toJSON()
+          const params = {
+            lat: position.lat,
+            lng: position.lng,
+            type
+          }
+
+          this.setDraftPoint(params)
         })
       }
     },
-    async handleMapClick(e) {
-      if (!!this.pointOnEdit && e.latlng) {
-        this.points.draft.id = new Date().getTime()
-        this.points.draft.lat = e.latlng.lat
-        this.points.draft.lng = e.latlng.lng
-        this.points.draft.accuracy = 0
-        this.points.draft.icon = this.getMarker()
+    updatePoint(point) {
+      const index = this.points.findIndex(p => p.id === point.id)
 
-        const address = await this.searchAddress(`${e.latlng.lat},${e.latlng.lng}`)
-        this.points.draft.address = get(address, 'label') || null
+      if (index > -1) {
+        this.points.splice(index, 1)
 
-        this.map.center = [e.latlng.lat, e.latlng.lng]
+        this.selectedPointId = point.id
+        this.pointDraft = { ...point }
+
+        if (!this.clickListener) {
+          this.map.setOptions({ draggableCursor: 'crosshair' })
+          this.clickListener = this.gmaps.event.addListener(this.map, 'click', (event) => {
+            const position = event.latLng.toJSON()
+            const params = {
+              lat: position.lat,
+              lng: position.lng,
+              type: this.pointDraft.type
+            }
+
+            this.setDraftPoint(params)
+          })
+        }
       }
     },
-    async getOptimizeRoute() {
+    deletePoint(pointId) {
+      const index = this.points.findIndex(p => p.id === pointId)
+
+      if (index > -1) {
+        if (this.points[index].marker) {
+          this.removeMarker(this.points[index].marker)
+        }
+
+        this.points.splice(index, 1)
+      }
+    },
+    setPoint() {
+      this.points.push({ ...this.pointDraft })
+      this.map.setOptions({ draggableCursor: '' })
+      this.gmaps.event.clearListeners(this.map, 'click')
+      this.clickListener = null
+      this.selectedPointId = null
+      this.pointDraft = {
+        id: null,
+        type: null,
+        lat: null,
+        lng: null,
+        address: null
+      }
+    },
+    async setDraftPoint(params) {
+      this.pointDraft.lat = params.lat
+      this.pointDraft.lng = params.lng
+      this.pointDraft.address = await this.getAddress(params)
+      this.pointDraft.marker = await this.addMarker({ ...params, address: this.pointDraft.address })
+    },
+    async generateRoutes() {
+      this.routes = []
       try {
         const payload = {
           jobs: [
-            { id: this.points.start.id, location: [this.points.start.lng, this.points.start.lat] },
-            ...this.points.jobs.map((job) => {
+            ...this.points.map((point) => {
               return {
-                id: job.id,
-                location: [job.lng, job.lat]
+                id: point.id,
+                location: [point.lng, point.lat]
               }
-            }),
-            { id: this.points.finish.id, location: [this.points.finish.lng, this.points.finish.lat] }
+            })
           ],
           vehicles: [
             {
               id: 1,
               profile: 'driving-car',
-              start: [this.points.start.lng, this.points.start.lat],
-              end: [this.points.finish.lng, this.points.finish.lat]
+              start: [this.pointStart.lng, this.pointStart.lat],
+              end: [this.pointFinish.lng, this.pointFinish.lat]
             }
-          ]
+          ],
+          options: {
+            g: true
+          }
         }
         const headers = {
           'Authorization': this.$config.ORS_API_KEY
@@ -488,6 +469,8 @@ export default {
           payload,
           { headers }
         )
+
+        console.log(data)
 
         this.routes = Array.isArray(get(data, 'routes[0].steps'))
           ? get(data, 'routes[0].steps').filter(step => step.type === 'job')
@@ -500,88 +483,18 @@ export default {
         })
       }
     },
-    async handleGenerateRoute() {
-      try {
-        await this.getOptimizeRoute()
-
-        let before
-        const promises = []
-        this.routes.forEach((current) => {
-          if (before) {
-            const points = `${before.location.join(',')};${current.location.join(',')}`
-            promises.push(this.$axios.get(`${this.$config.OSRM_API_URL}/route/v1/driving/${points}?geometries=geojson`))
-          }
-
-          before = current
-        })
-
-        const responses = await Promise.all(promises)
-        const routeLines = responses.map(val => val.data)
-        this.lines = routeLines.map(line => {
-          const coordinates = get(line, 'routes[0].geometry.coordinates')
-          return coordinates
-            ? coordinates.map(v => [v[1], v[0]])
-            : []
-        })
-      } catch (error) {
-        this.$swal({
-          icon: 'error',
-          title: 'Error',
-          text: error.message
-        })
-      }
+    async drawRoutes() {
+      // generateOptimizeRoutes
     },
-    async searchAddress(search) {
-      try {
-        if (!this.isSearchingPlace && search) {
-          this.isSearchingPlace = false
-          const results = await this.$leafletGeosearch.provider.search({
-            query: search
-          })
-
-          if (results && results.length) {
-            const placeOptions = results.map(res => ({ ...res, id: res.raw.place_id, value: res.raw.place_id }))
-            return placeOptions[0]
-          } else {
-            return null
-          }
-        }
-      } catch (error) {
-        this.$swal({
-          icon: 'error',
-          title: 'Error',
-          text: error.message
-        })
-        return null
-      } finally {
-        this.isSearchingPlace = false
-      }
+    formatDistance(distance) {
+      return formatNumber((distance / 1000), '0.00') + 'KM'
     },
-    async handleQrResult(e) {
-      try {
-        const data = JSON.parse(e)
-        if (!!this.pointOnEdit && data.latitude && data.longitude) {
-          this.points.draft.id = new Date().getTime()
-          this.points.draft.lat = data.latitude
-          this.points.draft.lng = data.longitude
-          this.points.draft.accuracy = 0
-          this.points.draft.icon = this.getMarker()
-
-          const address = await this.searchAddress(`${data.latitude},${data.longitude}`)
-          this.points.draft.address = get(address, 'label') || null
-
-          this.map.center = [data.latitude, data.longitude]
-        }
-
-      } catch (error) {
-        this.$swal({
-          icon: 'error',
-          title: 'Error',
-          text: error.message
-        })
-      } finally {
-        this.isOpenQrScanner = false
-      }
+    getPointById(id) {
+      return this.points.find(point => point.id === id) || {}
+    },
+    getPointJobIndexById(id) {
+      const jobs = this.points.filter(point => point.type === 'jobs')
+      return jobs.findIndex(point => point.id === id)
     }
   }
 }
