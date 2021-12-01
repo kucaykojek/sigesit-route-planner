@@ -35,8 +35,7 @@ export default {
   ],
   plugins: [
     { src: '~/plugins/third-party', mode: 'client' },
-    { src: '~/plugins/googleMaps', mode: 'client' },
-    { src: '~/plugins/leafletGeosearch', mode: 'client' }
+    { src: '~/plugins/googleMaps', mode: 'client' }
   ],
   components: true,
   buildModules: [
@@ -44,7 +43,6 @@ export default {
   ],
   modules: [
     '@nuxtjs/axios',
-    'nuxt-leaflet',
     'vue-sweetalert2/nuxt'
   ],
   build: {

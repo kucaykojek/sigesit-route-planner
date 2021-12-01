@@ -105,6 +105,8 @@ main {
   letter-spacing: 0;
   cursor: pointer;
 
+  @include ellipsis;
+
   &-small {
     font-size: .75em;
   }
@@ -131,6 +133,36 @@ main {
     background: $color-branding-blue;
     color: #fff;
   }
+
+  &-red {
+    background: $color-branding-red;
+    color: #fff;
+  }
+}
+
+.btn-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &-block {
+    width: 100%;
+  }
+
+  .btn {
+    flex: 1;
+    border-radius: 0;
+
+    &:first-child {
+      border-top-left-radius: .25em;
+      border-bottom-left-radius: .25em;
+    }
+
+    &:last-child {
+      border-top-right-radius: .25em;
+      border-bottom-right-radius: .25em;
+    }
+  }
 }
 
 .map-wrapper {
@@ -149,7 +181,7 @@ main {
   left: 0;
   bottom: 0;
   width: 100%;
-  height: 340px;
+  height: $sheet-height;
   padding: calc(1.5rem + 30px) 1.5rem 1.5rem 1.5rem;
   background: #fff;
   border-top-left-radius: 15px;
@@ -279,7 +311,6 @@ main {
     filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
   }
 
-
   @media (min-width: 750px) {
     position: relative;
     height: 100%;
@@ -307,13 +338,29 @@ main {
 }
 
 .route-result {
+  position: relative;
+  height: calc(100vh - $header-height);
+  margin-top: $header-height;
+  border-radius: 0;
+  box-shadow: none;
+  padding-top: 1.5rem;
+
+  &__expander {
+    display: none;
+  }
+
   &__list {
+    padding: 0 1.5rem;
+
     > ul {
+      padding: 1.5rem 0;
+
       li {
         margin-bottom: 3rem;
       }
     }
   }
+
   &__distance {
     position: absolute;
     z-index: 1;
@@ -323,5 +370,23 @@ main {
     padding: .5rem;
     font-size: .9rem;
     font-weight: 600;
+  }
+
+  &::before,
+  &::after {
+    display: none;
+  }
+
+  @media (min-width: 750px) {
+    margin-top: 0;
+    height: 100%;
+  }
+}
+
+#geolocationMap {
+  height: calc(100% - #{$sheet-height - 30});
+
+  @media (min-width: 750px) {
+    height: 100%;
   }
 }

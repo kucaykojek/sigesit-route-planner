@@ -4,6 +4,7 @@
 $font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
 
 $header-height: 60px;
+$sheet-height: 340px;
 $sidebar-width: 400px;
 
 $color-branding-red: #B52125;
@@ -13,7 +14,8 @@ $color-branding-blue: #1D6986;
 $color-list: (
   'branding-red':    $color-branding-red,
   'branding-green':  $color-branding-green,
-  'branding-blue':   $color-branding-blue
+  'branding-blue':   $color-branding-blue,
+  'gray':            #666
 );
 
 $font-weight-list: (

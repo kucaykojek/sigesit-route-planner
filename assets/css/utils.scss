@@ -45,26 +45,26 @@
 @each $name, $value in $spacing-list {
   @each $key, $position in $position-list {
     .p#{$key}-#{$name} {
-      padding-#{$position}: $value;
+      padding-#{$position}: $value !important;
     }
     .px#{$key}-#{$name} {
-      padding-left: $value;
-      padding-right: $value;
+      padding-left: $value !important;
+      padding-right: $value !important;
     }
     .py#{$key}-#{$name} {
-      padding-top: $value;
-      padding-bottom: $value;
+      padding-top: $value !important;
+      padding-bottom: $value !important;
     }
     .m#{$key}-#{$name} {
-      margin-#{$position}: $value;
+      margin-#{$position}: $value !important;
     }
     .mx#{$key}-#{$name} {
-      margin-left: $value;
-      margin-right: $value;
+      margin-left: $value !important;
+      margin-right: $value !important;
     }
     .my#{$key}-#{$name} {
-      margin-top: $value;
-      margin-bottom: $value;
+      margin-top: $value !important;
+      margin-bottom: $value !important;
     }
   }
 }
