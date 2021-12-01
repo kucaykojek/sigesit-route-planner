@@ -5,7 +5,7 @@
       <div v-if="!hasRoutes" ref="routePlanner" class="route-planner">
         <div ref="routePlannerExpander" class="route-planner__expander" @touchstart="handleExpandPlanner()"></div>
         <div class="route-planner__list">
-          <ul>
+          <ul ref="planCardWrapper">
             <li>
               <div class="route-planner__icon start"><i class="fas fa-circle"></i></div>
               <div class="route-planner__card">
@@ -78,7 +78,7 @@
                 </div>
               </div>
             </li>
-            <li v-if="showJobCard">
+            <li v-if="showJobCard" ref="jobCard">
               <div class="route-planner__icon"><i class="fas fa-circle"></i></div>
               <div class="route-planner__card">
                 <div class="font-weight-bold mb-4">
@@ -101,7 +101,7 @@
                     :disabled="!hasStartPoint"
                     @click="openQrScanner()"
                   >
-                    <i class="fas fa-qrcode fg-branding-red mr-2"></i> Pilih Lewat Scan QR
+                    <i class="fas fa-qrcode fg-branding-red mr-2"></i> Scan QR Code
                   </button>
                   <button
                     type="button"
@@ -114,13 +114,13 @@
                 </template>
               </div>
             </li>
-            <li v-if="hasStartPoint">
+            <li v-if="hasStartPoint" ref="addCard">
               <div class="btn-group btn-group-block">
                 <button
                   type="button"
                   class="btn"
                   :disabled="showJobCard || !hasJobsPoint || (hasDraftPoint && draftType === 'jobs')"
-                  @click="showJobCard = true"
+                  @click="setShowJobCard()"
                 >
                   <i class="fas fa-plus fg-branding-red mr-2"></i> Tambah Titik
                 </button>
@@ -129,13 +129,13 @@
                   type="button"
                   class="btn btn-blue"
                   :disabled="!hasJobsPoint || hasDraftPoint"
-                  @click="showFinishCard = true"
+                  @click="setShowFinishCard()"
                 >
                   <i class="fas fa-map-marker mr-2"></i> Titik Akhir
                 </button>
               </div>
             </li>
-            <li v-if="showFinishCard">
+            <li v-if="showFinishCard" ref="finishCard">
               <div class="route-planner__icon finish"><i class="fas fa-circle"></i></div>
               <div class="route-planner__card">
                 <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
@@ -238,6 +238,9 @@
     </aside>
     <main>
       <div class="map-wrapper">
+        <div v-if="mapMasking" class="map-masking">
+          <div class="map-masking__content">{{ mapMasking }}</div>
+        </div>
         <client-only>
           <div id="geolocationMap" ref="geolocationMap"></div>
         </client-only>
@@ -265,6 +268,22 @@ export default {
       isDraggingPlanner: false
     }
   },
+  computed: {
+    mapMasking() {
+      let masking = ''
+      if (!this.isDrafting) {
+        if (!this.hasStartPoint) {
+          masking = 'Silakan klik tombol Lokasi Saya atau tombol Pilih Lewat Peta'
+        } else if (this.showJobCard) {
+          masking = 'Silakan klik tombol Scan QR Code atau tombol Pilih Lewat Peta'
+        } else if (!this.hasFinishPoint && this.showFinishCard) {
+          masking = 'Silakan klik tombol Seperti Titik Awal atau tombol Pilih Lewat Peta'
+        }
+      }
+
+      return masking
+    }
+  },
   mounted() {
     document.addEventListener('touchmove', this.handlePointerMove)
     document.addEventListener('touchend', this.handlePointerUp)
@@ -286,7 +305,7 @@ export default {
         this.handleResizePlanner(e.touches[0])
       }
     },
-    handlePointerUp(e) {
+    handlePointerUp() {
       if (this.isDraggingPlanner) {
         this.isDraggingPlanner = false
       }
@@ -331,7 +350,27 @@ export default {
     formatDuration(duration) {
       return formatNumber((duration / 60), '0') + ' menit'
     },
-    openQrScanner() {}
+    openQrScanner() {},
+    setShowJobCard() {
+      this.showJobCard = true
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.$refs.jobCard.scrollIntoView({
+            behavior: 'smooth'
+          })
+        })
+      })
+    },
+    setShowFinishCard() {
+      this.showFinishCard = true
+      this.$nextTick(() => {
+        setTimeout(() => {
+          this.$refs.finishCard.scrollIntoView({
+            behavior: 'smooth'
+          })
+        })
+      })
+    }
   }
 }
 </script>

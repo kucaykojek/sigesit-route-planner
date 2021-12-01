@@ -20,6 +20,9 @@ export default {
     draftType() {
       return this.pointDraft.type
     },
+    isDrafting() {
+      return (!!this.pointDraft.type)
+    },
     hasDraftPoint() {
       return (!!this.pointDraft.type && !!this.pointDraft.lat && !!this.pointDraft.lng)
     },
@@ -167,7 +170,37 @@ export default {
       this.selectedPointId = null
       if (this.pointDraft.type === 'jobs') {
         this.showJobCard = false
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (this.$refs.finishCard) {
+              this.$refs.finishCard.scrollIntoView({
+                behavior: 'smooth'
+              })
+            } else if (this.$refs.addCard) {
+              this.$refs.addCard.scrollIntoView({
+                behavior: 'smooth'
+              })
+            }
+          })
+        })
       }
+
+      if (this.pointDraft.type === 'start') {
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (this.$refs.jobCard) {
+              this.$refs.jobCard.scrollIntoView({
+                behavior: 'smooth'
+              })
+            } else if (this.$refs.addCard) {
+              this.$refs.addCard.scrollIntoView({
+                behavior: 'smooth'
+              })
+            }
+          })
+        })
+      }
+
       this.pointDraft = {
         id: null,
         type: null,

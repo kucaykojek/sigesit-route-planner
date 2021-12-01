@@ -166,12 +166,30 @@ main {
 }
 
 .map-wrapper {
+  position: relative;
   width: 100vw;
   height: calc(100vh - #{$header-height});
 
   @media (min-width: 750px) {
     width: calc(100vw - #{$sidebar-width});
     height: calc(100vh - #{$header-height});
+  }
+
+  .map-masking {
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255, .6);
+
+    &__content {
+      position: absolute;
+      top: 40px;
+      width: 100%;
+      text-align: center;
+    }
   }
 }
 
@@ -339,7 +357,7 @@ main {
 
 .route-result {
   position: relative;
-  height: calc(100vh - $header-height);
+  height: calc(100vh - $header-height) !important;
   margin-top: $header-height;
   border-radius: 0;
   box-shadow: none;
