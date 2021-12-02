@@ -253,7 +253,7 @@
         </client-only>
       </div>
     </main>
-    <qr-scanner v-if="isShowingQrScanner" />
+    <qr-scanner v-if="isShowingQrScanner" @result="handleQrResult($event)" />
     <transition name="slide">
       <section
         v-if="hasDraftPoint"
@@ -420,6 +420,29 @@ export default {
           })
         })
       })
+    },
+    handleQrResult(e) {
+      try {
+        const data =  JSON.parse(e)
+        if (get(data, 'latitude') && get(data, 'longitude')) {
+          this.createPoint('jobs', {
+            lat: get(data, 'latitude'),
+            lng: get(data, 'longitude')
+          })
+        } else {
+          this.$swal({
+            icon: 'error',
+            title: 'Error',
+            text: 'Gagal membaca QR code'
+          })
+        }
+      } catch (error) {
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal membaca QR code'
+        })
+      }
     }
   }
 }

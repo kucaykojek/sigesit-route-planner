@@ -208,6 +208,10 @@ export default {
         lng: null,
         address: null
       }
+
+      if (this.isShowingQrScanner) {
+        this.toggleQrScanner()
+      }
     },
     async setDraftPoint(params) {
       this.pointDraft.lat = params.lat
