@@ -71,8 +71,8 @@ export default {
     },
     async addMarker({ lat, lng, type, address }) {
       try {
-        if (this.pointDraft.marker) {
-          await this.removeMarker(this.pointDraft.marker)
+        if (this.pointDraft.marker && this.pointDraft.infowindow) {
+          await this.removeMarker({ marker: this.pointDraft.marker, infowindow: this.pointDraft.infowindow })
         }
 
         const marker = new this.gmaps.Marker({
@@ -81,11 +81,18 @@ export default {
           icon: `/marker-pin-${type}.svg`
         })
 
+        const infowindow = new this.gmaps.InfoWindow({
+          content: `<div class="infowindow-content">${address}</div>`
+        })
+
         await marker.setMap(this.map)
         this.map.setCenter(marker.getPosition())
         this.map.setZoom(17)
+        marker.addListener('click', (e) => {
+          this.toggleInfoWindow(marker, infowindow)
+        })
 
-        return marker
+        return { marker, infowindow }
       } catch (error) {
         this.$swal({
           icon: 'error',
@@ -96,8 +103,24 @@ export default {
         return null
       }
     },
-    removeMarker(marker) {
+    removeMarker({ marker, infowindow }) {
+      if (infowindow !== null) {
+        this.gmaps.event.clearInstanceListeners(infowindow)
+        infowindow.close()
+        infowindow = null
+      }
+
+      this.gmaps.event.clearInstanceListeners(marker)
       marker.setMap(null)
+    },
+    toggleInfoWindow(marker, infowindow) {
+      if (!this.isDrafting) {
+        infowindow.open({
+          anchor: marker,
+          map: this.map,
+          shouldFocus: false
+        })
+      }
     },
     createPoint(type, data = null) {
       this.pointDraft.id = new Date().getTime()
@@ -155,8 +178,8 @@ export default {
       const index = this.points.findIndex(p => p.id === pointId)
 
       if (index > -1) {
-        if (this.points[index].marker) {
-          this.removeMarker(this.points[index].marker)
+        if (this.points[index].marker && this.points[index].infowindow) {
+          this.removeMarker({ marker: this.points[index].marker, infowindow: this.points[index].infowindow })
         }
 
         this.points.splice(index, 1)
@@ -201,6 +224,18 @@ export default {
         })
       }
 
+      if (this.pointDraft.type === 'finish') {
+        this.$nextTick(() => {
+          setTimeout(() => {
+            if (this.$refs.routePlannerList) {
+              this.$refs.routePlannerList.scrollTo({
+                top: this.$refs.routePlannerList.scrollHeight, behavior: 'smooth'
+              })
+            }
+          })
+        })
+      }
+
       this.pointDraft = {
         id: null,
         type: null,
@@ -217,7 +252,19 @@ export default {
       this.pointDraft.lat = params.lat
       this.pointDraft.lng = params.lng
       this.pointDraft.address = await this.getAddress(params)
-      this.pointDraft.marker = await this.addMarker({ ...params, address: this.pointDraft.address })
+      const { marker, infowindow } = await this.addMarker({ ...params, address: this.pointDraft.address })
+      this.pointDraft.marker = marker
+      this.pointDraft.infowindow = infowindow
+    },
+    setBounds() {
+      const bounds = new this.gmaps.LatLngBounds()
+
+      this.points.forEach(point => {
+        const place = new this.gmaps.LatLng(point.lat, point.lng)
+        bounds.extend(place)
+      })
+
+      this.map.fitBounds(bounds)
     }
   }
 }

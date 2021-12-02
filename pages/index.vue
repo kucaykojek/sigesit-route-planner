@@ -11,11 +11,11 @@
     <aside v-if="!isShowingQrScanner && !isDrafting">
       <div v-if="!hasRoutes" ref="routePlanner" class="route-planner">
         <div ref="routePlannerExpander" class="route-planner__expander" @touchstart="handleExpandPlanner()"></div>
-        <div class="route-planner__list">
-          <ul ref="planCardWrapper">
+        <div ref="routePlannerList" class="route-planner__list">
+          <ul>
             <li>
               <div class="route-planner__icon start"><i class="fas fa-circle"></i></div>
-              <div class="route-planner__card">
+              <div class="route-planner__card start">
                 <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik Awal</div>
                 <div v-if="hasStartPoint" class="mt-2 text-sm">
                   <div>{{ pointStart.address }}</div>
@@ -144,7 +144,7 @@
             </li>
             <li v-if="showFinishCard" ref="finishCard">
               <div class="route-planner__icon finish"><i class="fas fa-circle"></i></div>
-              <div class="route-planner__card">
+              <div class="route-planner__card finish">
                 <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
                 <div v-if="hasFinishPoint" class="mt-2 text-sm">
                   <div>{{ pointFinish.address }}</div>
@@ -199,7 +199,7 @@
           </ul>
         </div>
       </div>
-      <div v-else ref="routeResult" class="route-result">
+      <div v-else-if="!isShowingMap" ref="routeResult" class="route-result">
         <div class="route-result__list">
           <ul>
             <li
@@ -220,7 +220,14 @@
                   'finish': routeIndex === routes.length - 1
                 }"
               ><i class="fas fa-circle"></i></div>
-              <div class="route-result__card text-sm">
+              <a
+                class="route-result__card text-sm"
+                :class="{
+                  'start': routeIndex === 0,
+                  'finish': routeIndex === routes.length - 1
+                }"
+                @click="toggleMap(getPointById(route.id))"
+              >
                 <div class="font-weight-bold mb-1 text-xs">
                   <span v-if="getPointById(route.id).type === 'start'">Titik Awal</span>
                   <span v-else-if="getPointById(route.id).type === 'finish'">Titik Akhir</span>
@@ -228,22 +235,22 @@
                 </div>
 
                 {{ getPointById(route.id).address }}
-              </div>
+              </a>
             </li>
-            <li>
+            <li class="route-result__list__footer">
               <button
                 type="button"
-                class="btn btn-block btn-blue"
+                class="btn btn-block"
                 @click="updatePlan()"
               >
-                <i class="fas fa-edit mr-2"></i> Ubah Perjalanan
+                <i class="fas fa-edit fg-branding-red mr-2"></i> Ubah Perjalanan
               </button>
             </li>
           </ul>
         </div>
       </div>
     </aside>
-    <main v-show="!isShowingQrScanner" :class="{ 'is-drafting': isDrafting }">
+    <main v-show="!isShowingQrScanner || isShowingMap" :class="{ 'is-full': isDrafting || isShowingMap }">
       <div class="map-wrapper">
         <div v-if="mapMasking" class="map-masking">
           <div class="map-masking__content">{{ mapMasking }}</div>
@@ -274,6 +281,24 @@
         </button>
       </section>
     </transition>
+    <footer v-if="hasRoutes && !isShowingMap">
+      <div class="btn-group btn-group-block">
+        <button
+          type="button"
+          class="btn"
+          @click="updatePlan()"
+        >
+          <i class="fas fa-edit fg-branding-red mr-2"></i> Ubah Perjalanan
+        </button>
+        <button
+          type="button"
+          class="btn btn-red"
+          @click="toggleMap()"
+        >
+          <i class="fas fa-map-marker mr-2"></i> Lihat Peta
+        </button>
+      </div>
+    </footer>
   </div>
 </template>
 
@@ -297,6 +322,7 @@ export default {
       mapClickListener: null,
       isDraggingPlanner: false,
       isShowingQrScanner: false,
+      isShowingMap: false,
       header: {
         nav: {
           icon: 'fas fa-chevron-left fg-branding-red',
@@ -442,6 +468,25 @@ export default {
           title: 'Error',
           text: 'Gagal membaca QR code'
         })
+      }
+    },
+    toggleMap(data = {}) {
+      if (this.isShowingMap) {
+        this.isShowingMap = false
+        this.header.nav.icon = 'fas fa-chevron-left fg-branding-red'
+        this.header.nav.action = () => {}
+        this.header.title = 'Rencana Perjalanan'
+      } else {
+        this.isShowingMap = true
+        this.header.nav.icon = 'fas fa-times fg-gray'
+        this.header.nav.action = () => this.toggleMap()
+        this.header.title = 'Tutup Peta'
+
+        if (get(data, 'marker') && get(data, 'infowindow')) {
+          this.toggleInfoWindow(get(data, 'marker'), get(data, 'infowindow'))
+        } else {
+          this.setBounds()
+        }
       }
     }
   }

@@ -1,3 +1,5 @@
+@import './_variables';
+
 .swal2-popup.swal2-toast {
   padding: .5em 1em !important;
 }
@@ -8,4 +10,12 @@
   font-size: .9rem !important;
   color: #333 !important;
   margin-top: 0 !important;
+}
+
+.infowindow-content {
+  font-family: $font-family;
+  font-size: .75rem;
+  line-height: 1.2em;
+  color: #333;
+  padding: .25rem;
 }
