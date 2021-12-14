@@ -49,12 +49,6 @@ main {
   width: 100vw;
   height: calc(100vh - #{$header-height});
   margin-top: $header-height;
-
-  &.is-full {
-    #geolocationMap {
-      height: 100% !important;
-    }
-  }
 }
 
 footer {
@@ -181,141 +175,12 @@ footer {
       text-align: center;
     }
   }
-}
 
-.route-planner,
-.route-result {
-  position: relative;
-  height: calc(100% + 3rem);
-  margin: -1.5rem;
-  padding: 1.5rem 1.5rem 0 calc(1.5rem + 7.5px);
-  overflow: hidden;
-  overflow-y: auto;
+  .map-element {
+    height: 100%;
 
-  > ul {
-    min-height: 100%;
-    border-left: 2px solid #ddd;
-    padding-bottom: 30px;
-
-    li {
-      position: relative;
-      display: flex;
-      align-items: center;
-      padding-left: 1.5rem;
-      margin-bottom: 1rem;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
+    &.is-full-height {
+      height: 100% !important;
     }
   }
-
-  &__icon {
-    position: absolute;
-    z-index: 1;
-    width: 30px;
-    height: 30px;
-    text-align: center;
-    border-radius: 50%;
-    left: -15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-basis: 30px;
-    flex-shrink: 0;
-    font-size: 1.25rem;
-    color: $color-branding-red;
-    background-color: #fff;
-
-    &.start {
-      color: $color-branding-green;
-    }
-
-    &.finish {
-      color: $color-branding-blue;
-    }
-
-    &::before {
-      position: absolute;
-      top: 0;
-      left: -2px;
-      width: 2px;
-      height: 50%;
-      background: #fff;
-      content: "";
-    }
-  }
-
-  &__card {
-    flex-grow: 1;
-    border: 1px solid #ddd;
-    border-radius: .5rem;
-    padding: 1rem;
-    color: #333;
-
-    &:hover {
-      border-color: $color-branding-red;
-      box-shadow: inset 0 0 0 1px $color-branding-red;
-    }
-
-    &.start {
-      &:hover {
-        border-color: $color-branding-green;
-        box-shadow: inset 0 0 0 1px $color-branding-green;
-      }
-    }
-
-    &.finish {
-      &:hover {
-        border-color: $color-branding-blue;
-        box-shadow: inset 0 0 0 1px $color-branding-blue;
-      }
-    }
-  }
-}
-
-.route-result {
-  position: relative;
-  height: calc(100vh - #{$header-height * 2}) !important;
-  margin-top: $header-height;
-  margin-bottom: $header-height;
-  border-radius: 0;
-  box-shadow: none;
-  padding-top: 1.5rem;
-
-  &__expander {
-    display: none;
-  }
-
-  &__list {
-    padding: 0 1.5rem;
-
-    > ul {
-      padding: 1.5rem 0;
-
-      li {
-        margin-bottom: 3rem;
-      }
-    }
-  }
-
-  &__distance {
-    position: absolute;
-    z-index: 1;
-    top: -2.5rem;
-    left: -13px;
-    background-color: #fff;
-    padding: .5rem;
-    font-size: .9rem;
-    font-weight: 600;
-  }
-
-  &::before,
-  &::after {
-    display: none;
-  }
-}
-
-#geolocationMap {
-  height: calc(100% - #{$sheet-height - 30});
 }

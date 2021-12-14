@@ -6,7 +6,9 @@ export const state = () => {
         action: () => {}
       },
       title: 'Rencana Perjalanan'
-    }
+    },
+    usingMapLibrary: 'gmaps',
+    mapLibrary: null
   }
 }
 
@@ -26,5 +28,20 @@ export const mutations = {
         title: 'Rencana Perjalanan'
       }
     }
+  },
+  setUsingMapLibrary: (state, data) => {
+    state.usingMapLibrary = ['gmaps', 'osm'].includes(data) ? data : 'gmaps'
+  },
+  setMapLibrary: (state, data) => {
+    state.mapLibrary = data
+  }
+}
+
+export const getters = {
+  isUsingGmaps: state => {
+    return state.usingMapLibrary === 'gmaps'
+  },
+  isUsingOsm: state => {
+    return state.usingMapLibrary === 'osm'
   }
 }

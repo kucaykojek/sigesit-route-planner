@@ -11,7 +11,7 @@ export const state = () => {
     },
     points: [],
     selectedPointId: null,
-    showJobCard: true,
+    showJobCard: false,
     showFinishCard: false
   }
 }
@@ -83,5 +83,12 @@ export const getters = {
   },
   hasFinishPoint: (state, getters) => {
     return Object.keys(getters.pointFinish).length > 0
+  },
+  getPointById: state => (id) => {
+    return state.points.find(point => point.id === id) || {}
+  },
+  getPointJobIndexById: state => (id) => {
+    const jobs = state.points.filter(point => point.type === 'jobs')
+    return jobs.findIndex(point => point.id === id)
   }
 }

@@ -86,8 +86,8 @@ export default {
   left: 0;
   bottom: 0;
   width: 100%;
-  height: $sheet-height;
-  padding: calc(1.5rem + 30px) 1.5rem 1.5rem 1.5rem;
+  height: auto;
+  padding: 1.5rem;
   background: #fff;
   border-top-left-radius: 15px;
   border-top-right-radius: 15px;
@@ -119,6 +119,9 @@ export default {
   }
 
   &--expandable {
+    height: $sheet-height;
+    padding-top: calc(1.5rem + 30px);
+
     &::before,
     &::after {
       position: absolute;

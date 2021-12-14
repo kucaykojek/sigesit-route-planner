@@ -1,127 +1,60 @@
 <template>
   <div class="main-wrapper noselect">
-    <aside v-if="!isShowingQrScanner && !isDrafting">
-      <CommonSheet v-if="!hasRoutes" :is-expandable="true" name="sheetPlanner">
-        <RoutePlan />
-      </CommonSheet>
-      <div v-else-if="!isShowingMap" ref="routeResult" class="route-result">
-        <div class="route-result__list">
-          <ul>
-            <li
-              v-for="(route, routeIndex) in routes"
-              :key="`route-result-${routeIndex}`"
-              :class="{
-                'mb-6': routeIndex === routes.length - 1
-              }"
-            >
-              <div v-if="routeIndex > 0" class="route-result__distance text-xs">
-                {{ formatDistance(route.distance - routes[routeIndex - 1].distance) }}
-                <span class="fg-gray font-weight-normal">(±{{ formatDuration(route.duration - routes[routeIndex - 1].duration) }})</span>
-              </div>
-              <div
-                class="route-result__icon"
-                :class="{
-                  'start': routeIndex === 0,
-                  'finish': routeIndex === routes.length - 1
-                }"
-              ><i class="fas fa-circle"></i></div>
-              <a
-                class="route-result__card text-sm"
-                :class="{
-                  'start': routeIndex === 0,
-                  'finish': routeIndex === routes.length - 1
-                }"
-                @click="toggleMap(getPointById(route.id))"
-              >
-                <div class="font-weight-bold mb-1 text-xs">
-                  <span v-if="getPointById(route.id).type === 'start'">Titik Awal</span>
-                  <span v-else-if="getPointById(route.id).type === 'finish'">Titik Akhir</span>
-                  <span v-else>Titik #{{ getPointJobIndexById(route.id) + 1 }}</span>
-                </div>
+    <aside v-if="!isShowingQrScanner">
+      <transition name="slide">
+        <!-- Route Plan -->
+        <CommonSheet
+          v-if="(!isDrafting && !hasRoutes) || hasDraftPoint"
+          :ref="!isDrafting && !hasRoutes ? 'sheetPlanner' : 'sheetConfirmation'"
+          :name="!isDrafting && !hasRoutes ? 'sheetPlanner' : 'sheetConfirmation'"
+          :is-expandable="!isDrafting && !hasRoutes"
+          @resizing="resizeMap($event)"
+        >
+          <RoutePlan :map-id="mapId" @open:qrscanner="toggleQrScanner()" />
+        </CommonSheet>
 
-                {{ getPointById(route.id).address }}
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
+        <!-- Route Result -->
+        <RouteResult v-else-if="!isDrafting && !isShowingMap" @open:map="toggleMap()" />
+      </transition>
     </aside>
-    <main v-show="!isShowingQrScanner || isShowingMap" :class="{ 'is-full': isDrafting || isShowingMap }">
+    <main v-show="!isShowingQrScanner || isShowingMap">
       <div class="map-wrapper">
         <div v-if="mapMasking" class="map-masking">
           <div class="map-masking__content">{{ mapMasking }}</div>
         </div>
         <client-only>
-          <div id="geolocationMap" ref="geolocationMap"></div>
+          <div :id="mapId" :ref="mapId" :class="['map-element', { 'is-full-height': isDrafting || isShowingMap }]"></div>
         </client-only>
       </div>
     </main>
-    <qr-scanner v-if="isShowingQrScanner" @result="handleQrResult($event)" />
-    <transition name="slide">
-      <section
-        v-if="hasDraftPoint"
-        class="sheet text-sm"
-      >
-        <div>{{ pointDraft.address }}</div>
-        <button
-          type="button"
-          class="btn btn-block mt-4"
-          :class="{
-            'btn-green': draftType === 'start',
-            'btn-blue': draftType === 'finish',
-            'btn-red': draftType === 'jobs'
-          }"
-          @click="setPoint()"
-        >
-          <i class="fas fa-check mr-2"></i> Konfirmasi
-        </button>
-      </section>
-    </transition>
-    <footer v-if="hasRoutes && !isShowingMap">
-      <div class="btn-group btn-group-block">
-        <button
-          type="button"
-          class="btn"
-          @click="updatePlan()"
-        >
-          <i class="fas fa-edit fg-branding-red mr-2"></i> Ubah Perjalanan
-        </button>
-        <button
-          type="button"
-          class="btn btn-red"
-          @click="toggleMap()"
-        >
-          <i class="fas fa-map-marker mr-2"></i> Lihat Peta
-        </button>
-      </div>
-    </footer>
+    <QRScanner v-if="isShowingQrScanner" @result="handleQrResult($event)" />
   </div>
 </template>
 
 <script>
 import get from 'lodash/get'
+import { mapState, mapGetters } from 'vuex'
 
-import { formatNumber } from '~/helpers/formatter'
-import gmapsMixins from '~/mixins/gmaps'
-import lineMixins from '~/mixins/lines'
-import pointMixins from '~/mixins/points'
-import routeMixins from '~/mixins/routes'
+import mapsMixins from '~/mixins/maps'
 
 export default {
   name: 'PagePlanner',
-  mixins: [gmapsMixins, lineMixins, pointMixins, routeMixins],
+  mixins: [mapsMixins],
   layout: 'planner',
   data() {
     return {
-      map: null,
-      lines: [],
+      mapId: 'mapPlanner',
       mapClickListener: null,
-      isDraggingPlanner: false,
-      isShowingQrScanner: false,
-      isShowingMap: false
+      isShowingMap: false,
+      isShowingQrScanner: false
     }
   },
   computed: {
+    ...mapState('points', ['pointDraft', 'showJobCard', 'showFinishCard']),
+    ...mapGetters('points', [
+      'draftType', 'isDrafting', 'hasDraftPoint', 'hasJobsPoint', 'hasStartPoint', 'hasFinishPoint'
+    ]),
+    ...mapGetters('routes', ['hasRoutes']),
     mapMasking() {
       let masking = ''
       if (!this.isDrafting) {
@@ -137,77 +70,32 @@ export default {
       return masking
     }
   },
+  created() {
+    this.$nuxt.$on(`${this.mapId}:loaded`, () => {
+      this.resizeMap()
+    })
+  },
   mounted() {
     this.loadMap()
   },
   methods: {
-    async getCurrentLocation(callback) {
-      if (navigator.geolocation) {
-        const { coords } = await new Promise(function(resolve, reject) {
-          navigator.geolocation.getCurrentPosition(resolve, reject)
-        })
-
-        callback(coords)
-      } else {
-        this.$swal({
-          icon: 'error',
-          title: 'Error',
-          text: 'Geolocation tidak didukung oleh browser ini'
-        })
+    resizeMap(sheetPlannerHeight) {
+      if (document) {
+        if (sheetPlannerHeight) {
+          this.$refs[this.mapId].style.height = `${(document.body.clientHeight - sheetPlannerHeight) + 30}px`
+        } else if (get(this.$refs, 'sheetPlanner.$el')) {
+          this.$refs[this.mapId].style.height = `${(document.body.clientHeight - this.$refs.sheetPlanner.$el.offsetHeight) + 30}px`
+        }
       }
-    },
-    async generatePlan() {
-      await this.generateRoutes()
-      await this.generateLines()
-    },
-    updatePlan() {
-      this.deleteRoutes()
-      this.deleteLines()
-    },
-    formatDistance(distance) {
-      return formatNumber((distance / 1000), '0.00') + 'KM'
-    },
-    formatDuration(duration) {
-      return formatNumber((duration / 60), '0') + ' menit'
-    },
-    toggleQrScanner() {
-      if (this.isShowingQrScanner) {
-        this.isShowingQrScanner = false
-        this.header.nav.icon = 'fas fa-chevron-left fg-branding-red'
-        this.header.nav.action = () => {}
-        this.header.title = 'Rencana Perjalanan'
-      } else {
-        this.isShowingQrScanner = true
-        this.header.nav.icon = 'fas fa-times fg-gray'
-        this.header.nav.action = () => this.toggleQrScanner()
-        this.header.title = 'Batal'
-      }
-    },
-    setShowJobCard() {
-      this.showJobCard = true
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.$refs.jobCard.scrollIntoView({
-            behavior: 'smooth'
-          })
-        })
-      })
-    },
-    setShowFinishCard() {
-      this.showFinishCard = true
-      this.$nextTick(() => {
-        setTimeout(() => {
-          this.$refs.finishCard.scrollIntoView({
-            behavior: 'smooth'
-          })
-        })
-      })
     },
     handleQrResult(e) {
       try {
         const data =  JSON.parse(e)
         if (get(data, 'latitude') && get(data, 'longitude')) {
           this.createPoint('jobs', {
+            customer_name: get(data, 'name'),
+            shipment_number: get(data, 'shipment_number'),
+            address: get(data, 'address'),
             lat: get(data, 'latitude'),
             lng: get(data, 'longitude')
           })
@@ -226,23 +114,52 @@ export default {
         })
       }
     },
+    toggleQrScanner() {
+      if (this.isShowingQrScanner) {
+        this.isShowingQrScanner = false
+        this.$store.commit('setHeader', {
+          nav: {
+            icon: 'fas fa-chevron-left fg-branding-red',
+            action: () => {}
+          },
+          title: 'Rencana Perjalanan'
+        })
+      } else {
+        this.isShowingQrScanner = true
+        this.$store.commit('setHeader', {
+          nav: {
+            icon: 'fas fa-times fg-gray',
+            action: () => this.toggleQrScanner()
+          },
+          title: 'Tutup QR Scanner'
+        })
+      }
+    },
     toggleMap(data = {}) {
       if (this.isShowingMap) {
         this.isShowingMap = false
-        this.header.nav.icon = 'fas fa-chevron-left fg-branding-red'
-        this.header.nav.action = () => {}
-        this.header.title = 'Rencana Perjalanan'
+        this.$store.commit('setHeader', {
+          nav: {
+            icon: 'fas fa-chevron-left fg-branding-red',
+            action: () => {}
+          },
+          title: 'Rencana Perjalanan'
+        })
       } else {
         this.isShowingMap = true
-        this.header.nav.icon = 'fas fa-times fg-gray'
-        this.header.nav.action = () => this.toggleMap()
-        this.header.title = 'Tutup Peta'
+        this.$store.commit('setHeader', {
+          nav: {
+            icon: 'fas fa-times fg-gray',
+            action: () => this.toggleMap()
+          },
+          title: 'Tutup Peta'
+        })
 
-        if (get(data, 'marker') && get(data, 'infowindow')) {
-          this.toggleInfoWindow(get(data, 'marker'), get(data, 'infowindow'))
-        } else {
-          this.setBounds()
-        }
+        // if (get(data, 'marker') && get(data, 'infowindow')) {
+        //   this.toggleInfoWindow(get(data, 'marker'), get(data, 'infowindow'))
+        // } else {
+        //   this.setBounds()
+        // }
       }
     }
   }
