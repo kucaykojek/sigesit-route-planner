@@ -38,55 +38,9 @@ strong, b {
   font-weight: 600 !important;
 }
 
-header {
-  position: fixed;
-  z-index: 999;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: $header-height;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba($color: #000000, $alpha: .2);
-  display: flex;
-  align-items: center;
-  padding: 0 .5rem;
-
-  .header {
-    &__nav {
-      display: flex;
-      width: 40px;
-      height: 40px;
-      flex-basis: 40px;
-      flex-shrink: 0;
-      cursor: pointer;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-    }
-
-    &__title {
-      padding-top: .25rem;
-      padding-left: .75rem;
-      font-size: 1.25rem;
-      letter-spacing: 1px;
-    }
-  }
-}
-
 aside {
   position: relative;
   z-index: 99;
-
-  @media (min-width: 750px) {
-    position: fixed;
-    top: $header-height;
-    left: 0;
-    width: $sidebar-width;
-    height: calc(100vh - #{$header-height});
-    background: #fff;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
 }
 
 main {
@@ -96,27 +50,9 @@ main {
   height: calc(100vh - #{$header-height});
   margin-top: $header-height;
 
-  @media (min-width: 750px) {
-    width: calc(100vw - #{$sidebar-width});
-    margin-left: $sidebar-width;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
   &.is-full {
     #geolocationMap {
       height: 100% !important;
-    }
-  }
-
-  @media (min-width: 750px) {
-    &.is-full {
-      width: 100vw;
-      margin-left: 0;
-
-      #geolocationMap {
-        width: 100vw;
-      }
     }
   }
 }
@@ -133,10 +69,6 @@ footer {
   align-items: center;
   padding: 0 .75rem;
   box-shadow: 0 -1px 4px rgba($color: #000000, $alpha: .2);
-
-  @media (min-width: 750px) {
-    display: none;
-  }
 }
 
 .noselect {
@@ -232,11 +164,6 @@ footer {
   width: 100vw;
   height: calc(100vh - #{$header-height});
 
-  @media (min-width: 750px) {
-    width: calc(100vw - #{$sidebar-width});
-    height: calc(100vh - #{$header-height});
-  }
-
   .map-masking {
     position: absolute;
     z-index: 1;
@@ -253,52 +180,32 @@ footer {
       padding: 0 2rem;
       text-align: center;
     }
-
-    @media (min-width: 750px) {
-      &__content {
-        top: 40px;
-      }
-    }
   }
 }
 
 .route-planner,
 .route-result {
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: $sheet-height;
-  padding: calc(1.5rem + 30px) 1.5rem 1.5rem 1.5rem;
-  background: #fff;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  box-shadow: 0 -1px 4px rgba($color: #000000, $alpha: .2);
+  position: relative;
+  height: calc(100% + 3rem);
+  margin: -1.5rem;
+  padding: 1.5rem 1.5rem 0 calc(1.5rem + 7.5px);
   overflow: hidden;
+  overflow-y: auto;
 
-  &__list {
-    position: relative;
-    height: calc(100% + 3rem);
-    margin: -1.5rem;
-    padding: 1.5rem 1.5rem 0 calc(1.5rem + 7.5px);
-    overflow: hidden;
-    overflow-y: auto;
+  > ul {
+    min-height: 100%;
+    border-left: 2px solid #ddd;
+    padding-bottom: 30px;
 
-    > ul {
-      min-height: 100%;
-      border-left: 2px solid #ddd;
-      padding-bottom: 30px;
+    li {
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
 
-      li {
-        position: relative;
-        display: flex;
-        align-items: center;
-        padding-left: 1.5rem;
-        margin-bottom: 1rem;
-
-        &:last-child {
-          margin-bottom: 0;
-        }
+      &:last-child {
+        margin-bottom: 0;
       }
     }
   }
@@ -365,83 +272,6 @@ footer {
       }
     }
   }
-
-  &__expander {
-    position: absolute;
-    z-index: 3;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 30px;
-
-    &::after {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      height: 5px;
-      width: 80px;
-
-      content: "";
-      background: #eee;
-      border-radius: 3px;
-      cursor: pointer;
-
-      @include prefix(transform, translate(-50%, -50%));
-    }
-  }
-
-  &::before,
-  &::after {
-    position: absolute;
-    z-index: 2;
-    left: 0;
-    height: 30px;
-    width: 100%;
-    content: "";
-  }
-
-  &::before {
-    top: 20px;
-    background: rgb(255,255,255);
-    background: -moz-linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    background: -webkit-linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    background: linear-gradient(180deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
-  }
-
-  &::after {
-    bottom: 0;
-    background: rgb(255,255,255);
-    background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr="#ffffff",endColorstr="#ffffff",GradientType=1);
-  }
-
-  @media (min-width: 750px) {
-    position: relative;
-    height: 100%;
-    border-radius: 0;
-    box-shadow: none;
-    padding-top: 1.5rem;
-
-    &__expander {
-      display: none;
-    }
-
-    &__list {
-      padding: 0 1.5rem;
-
-      > ul {
-        padding: 1.5rem 0;
-      }
-    }
-
-    &::before,
-    &::after {
-      display: none;
-    }
-  }
 }
 
 .route-result {
@@ -467,14 +297,6 @@ footer {
         margin-bottom: 3rem;
       }
     }
-
-    &__footer {
-      display: none !important;
-
-      @media (min-width: 750px) {
-        display: block !important;
-      }
-    }
   }
 
   &__distance {
@@ -492,41 +314,8 @@ footer {
   &::after {
     display: none;
   }
-
-  @media (min-width: 750px) {
-    margin-top: 0;
-    margin-bottom: 0;
-    height: 100% !important;
-  }
 }
 
 #geolocationMap {
   height: calc(100% - #{$sheet-height - 30});
-
-  @media (min-width: 750px) {
-    height: 100%;
-  }
-}
-
-.sheet {
-  position: fixed;
-  z-index: 99;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  padding: 1.5rem;
-  background: #fff;
-  border-top-left-radius: 15px;
-  border-top-right-radius: 15px;
-  box-shadow: 0 -1px 4px rgba($color: #000000, $alpha: .2);
-
-  @media (min-width: 750px) {
-    left: 50%;
-    width: 500px;
-    margin-bottom: 30px;
-    border-radius: .5rem;
-    box-shadow: 0 0 4px rgba($color: #000000, $alpha: .2);
-
-    @include prefix(transform, translateX(-50%));
-  }
 }
