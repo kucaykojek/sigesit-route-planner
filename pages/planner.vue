@@ -23,6 +23,9 @@
           <div class="map-masking__content">{{ mapMasking }}</div>
         </div>
         <client-only>
+          <a v-if="!mapMasking" class="map-gps" @click="getRealtimeLocation(true)">
+            <i class="fas fa-crosshairs"></i>
+          </a>
           <div :id="mapId" :ref="mapId" :class="['map-element', { 'is-full-height': isDrafting || isShowingMap }]"></div>
         </client-only>
       </div>

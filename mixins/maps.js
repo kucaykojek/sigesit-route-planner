@@ -4,7 +4,9 @@ export default {
       mapId: 'map',
       mapElement: null,
       mapClickListener: null,
-      marker: {}
+      marker: {},
+      realtimeMarker: null,
+      realtimeMarkerTimeout: null
     }
   },
   computed: {
@@ -30,6 +32,39 @@ export default {
     })
   },
   methods: {
+    async getRealtimeLocation(setCenter = false) {
+      if (navigator.geolocation) {
+        if (this.realtimeMarkerTimeout) {
+          clearTimeout(this.realtimeMarkerTimeout)
+          this.realtimeMarkerTimeout = null
+        }
+
+        const { coords } = await new Promise(function(resolve, reject) {
+          navigator.geolocation.getCurrentPosition(resolve, reject)
+        })
+
+        if (this.realtimeMarker) {
+          this.realtimeMarker.setMap(null)
+        } else {
+          this.realtimeMarker = new this.mapLibrary.Marker({
+            position: new this.mapLibrary.LatLng(coords.latitude, coords.longitude),
+            title: 'Lokasi Anda',
+            icon: '/marker-gps.svg'
+          })
+        }
+
+        this.realtimeMarker.setMap(this.mapElement)
+
+        if (setCenter) {
+          this.mapElement.setCenter(this.realtimeMarker.getPosition())
+          this.mapElement.setZoom(17)
+        }
+
+        this.realtimeMarkerTimeout = setTimeout(() => {
+          this.getRealtimeLocation()
+        }, 10000)
+      }
+    },
     loadMap() {
       if (this.isUsingGmaps) {
         this.$gmaps.loader.load().then((google) => {
@@ -49,6 +84,7 @@ export default {
           })
 
           this.$nuxt.$emit(`${this.mapId}:loaded`, this.mapElement)
+          this.getRealtimeLocation()
         })
       }
     },
@@ -80,24 +116,26 @@ export default {
           await this.removeMarker({ marker: this.marker[data.id].marker, infowindow: this.marker[data.id].infowindow })
         }
 
-        const marker = new this.mapLibrary.Marker({
-          position: new this.mapLibrary.LatLng(data.lat, data.lng),
-          title: data.address,
-          icon: `/marker-pin-${data.type}.svg`
-        })
+        if (data.lat && data.lng) {
+          const marker = new this.mapLibrary.Marker({
+            position: new this.mapLibrary.LatLng(data.lat, data.lng),
+            title: data.address,
+            icon: `/marker-pin-${data.type}.svg`
+          })
 
-        const infowindow = new this.mapLibrary.InfoWindow({
-          content: `<div class="infowindow-content">${data.address}</div>`
-        })
+          const infowindow = new this.mapLibrary.InfoWindow({
+            content: `<div class="infowindow-content">${data.address}</div>`
+          })
 
-        await marker.setMap(this.mapElement)
-        this.mapElement.setCenter(marker.getPosition())
-        this.mapElement.setZoom(17)
-        marker.addListener('click', (e) => {
-          this.toggleInfoWindow(marker, infowindow)
-        })
+          await marker.setMap(this.mapElement)
+          this.mapElement.setCenter(marker.getPosition())
+          this.mapElement.setZoom(17)
+          marker.addListener('click', (e) => {
+            this.toggleInfoWindow(marker, infowindow)
+          })
 
-        this.marker[data.id] = { marker, infowindow }
+          this.marker[data.id] = { marker, infowindow }
+        }
       } catch (error) {
         this.$swal({
           icon: 'error',

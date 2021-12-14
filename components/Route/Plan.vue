@@ -287,14 +287,14 @@ export default {
           ...latLng,
           address
         })
+
+        this.$nextTick(() => {
+          this.$nuxt.$emit(`${this.mapId}:addMarker`, this.pointDraft)
+        })
       }
 
       this.$nuxt.$emit(`${this.mapId}:addListener`, 'click', ($event) => {
         this.createPoint(type, $event)
-      })
-
-      this.$nextTick(() => {
-        this.$nuxt.$emit(`${this.mapId}:addMarker`, this.pointDraft)
       })
     },
     importJobPoints() {
