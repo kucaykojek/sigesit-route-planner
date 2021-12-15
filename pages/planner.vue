@@ -1,6 +1,6 @@
 <template>
   <div class="main-wrapper noselect">
-    <aside v-if="!isShowingQrScanner">
+    <aside v-if="!isShowingQrScanner || hasDraftPoint">
       <transition name="slide">
         <!-- Route Plan -->
         <CommonSheet
@@ -10,7 +10,7 @@
           :is-expandable="!isDrafting && !hasRoutes"
           @resizing="resizeMap($event)"
         >
-          <RoutePlan :map-id="mapId" @open:qrscanner="toggleQrScanner()" />
+          <RoutePlan :map-id="mapId" @open:qrscanner="toggleQrScanner()" @save="toggleQrScanner(true)" />
         </CommonSheet>
 
         <!-- Route Result -->
@@ -95,7 +95,7 @@ export default {
       try {
         const data =  JSON.parse(e)
         if (get(data, 'latitude') && get(data, 'longitude')) {
-          this.createPoint('jobs', {
+          this.$nuxt.$emit('createPoint', 'jobs', {
             customer_name: get(data, 'name'),
             shipment_number: get(data, 'shipment_number'),
             address: get(data, 'address'),
@@ -117,7 +117,7 @@ export default {
         })
       }
     },
-    toggleQrScanner() {
+    toggleQrScanner(isFromScanner = false) {
       if (this.isShowingQrScanner) {
         this.isShowingQrScanner = false
         this.$store.commit('setHeader', {
@@ -127,7 +127,7 @@ export default {
           },
           title: 'Rencana Perjalanan'
         })
-      } else {
+      } else if (!isFromScanner) {
         this.isShowingQrScanner = true
         this.$store.commit('setHeader', {
           nav: {

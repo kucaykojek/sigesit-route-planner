@@ -296,8 +296,8 @@ export default {
     }
   },
   created() {
-    this.$nuxt.$on('savePoint', () => {
-      this.savePoint()
+    this.$nuxt.$on('createPoint', (type, data) => {
+      this.createPoint(type, data)
     })
   },
   methods: {
@@ -385,11 +385,17 @@ export default {
           lng: data.lng
         }
 
-        const address = await this.getLocationAddress(latLng)
-        this.setPointDraft({
-          ...latLng,
-          address
-        })
+        if (!data.address) {
+          const address = await this.getLocationAddress(latLng)
+          this.setPointDraft({
+            ...data,
+            address
+          })
+        } else {
+          this.setPointDraft({
+            ...data
+          })
+        }
 
         this.$nextTick(() => {
           this.$nuxt.$emit(`${this.mapId}:addMarker`, this.pointDraft)
