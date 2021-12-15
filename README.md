@@ -1,7 +1,7 @@
 # SiGesit Route Planner
 SiGesit Route Planner. Aplikasi untuk SiCepat - PAHLAWAN HACKATHON 2021.
 
-[Demo](https://demo-sigesit-route-planner.nwblb.com/) - [Design](https://www.figma.com/file/XhhOCQaWCDClzrEHscupXw/SiCepat?node-id=21%3A76)
+[Demo](https://sigesit.aduuh.com/planner) - [Design](https://www.figma.com/file/XhhOCQaWCDClzrEHscupXw/SiCepat?node-id=21%3A76)
 ## Prerequisites
  - **Node JS** - [Link](https://nodejs.org/en/). (Preferred installed via **nvm**). Tested at `14.18.1`
  - **Yarn** - [Link](https://yarnpkg.com/). Tested at `1.22.15`

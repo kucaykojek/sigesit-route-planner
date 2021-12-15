@@ -5,7 +5,7 @@ export const state = () => {
         icon: 'fas fa-chevron-left fg-branding-red',
         action: () => {}
       },
-      title: 'Rencana Perjalanan'
+      title: 'Rencana Perjalananx'
     },
     usingMapLibrary: 'gmaps',
     mapLibrary: null
