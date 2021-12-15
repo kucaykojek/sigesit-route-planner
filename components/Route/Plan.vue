@@ -1,16 +1,24 @@
 <template>
-  <div ref="routePlan" :class="['route-plan', { 'is-confirmation': hasDraftPoint }]">
-    <div v-if="!isDrafting && !hasRoutes">
+  <div
+    ref="routePlan"
+    :class="['route-plan', { 'is-confirmation': hasDraftPoint }]"
+  >
+    <div v-if="!isDrafting">
       <ul class="route-plan__list">
         <li class="route-plan__list__item">
-          <div class="route-plan__list__item__icon start"><i class="fas fa-circle"></i></div>
+          <div class="route-plan__list__item__icon start">
+            <i class="fas fa-circle"></i>
+          </div>
           <div class="route-plan__list__item__card start">
-            <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik Awal</div>
+            <div class="font-weight-bold mb-4">
+              <i class="fas fa-map-marker fg-branding-green mr-2"></i> Titik
+              Awal
+            </div>
             <div v-if="hasStartPoint" class="mt-2 text-sm">
               <div>{{ pointStart.address }}</div>
               <button
                 type="button"
-                class="btn btn-block mt-2"
+                class="btn btn-block mt-3"
                 @click="updatePoint(pointStart)"
               >
                 <i class="fas fa-edit fg-branding-green mr-2"></i> Ubah
@@ -20,16 +28,25 @@
               <button
                 type="button"
                 class="btn btn-block"
-                @click="getCurrentLocation((coords) => createPoint('start', { lat: coords.latitude, lng: coords.longitude }))"
+                @click="
+                  getCurrentLocation((coords) =>
+                    createPoint('start', {
+                      lat: coords.latitude,
+                      lng: coords.longitude,
+                    })
+                  )
+                "
               >
-                <i class="fas fa-crosshairs fg-branding-green mr-2"></i> Lokasi Saya
+                <i class="fas fa-crosshairs fg-branding-green mr-2"></i> Lokasi
+                Saya
               </button>
               <button
                 type="button"
                 class="btn btn-block mt-2"
                 @click="createPoint('start')"
               >
-                <i class="fas fa-map fg-branding-green mr-2"></i> Pilih Lewat Peta
+                <i class="fas fa-map fg-branding-green mr-2"></i> Pilih Lewat
+                Peta
               </button>
             </template>
           </div>
@@ -39,17 +56,28 @@
           :key="`card-jobs-${jobIndex}`"
           class="route-plan__list__item"
         >
-          <div class="route-plan__list__item__icon"><i class="fas fa-circle"></i></div>
+          <div class="route-plan__list__item__icon">
+            <i class="fas fa-circle"></i>
+          </div>
           <div class="route-plan__list__item__card">
             <div class="font-weight-bold mb-4">
-              <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ jobIndex + 1 }}
+              <i class="fas fa-map-marker fg-branding-red mr-2"></i>
+              Titik #{{ jobIndex + 1 }}
+              <template v-if="selectedPointId !== job.id">
+                <span class="fg-gray">-</span>
+                <span class="font-weight-normal text-sm">NO. RESI: <strong>{{ job.shipment_number }}</strong></span>
+              </template>
             </div>
             <div class="mt-2 text-sm">
-              <div>{{ job.address }}</div>
-              <div class="btn-group btn-group-block mt-2">
+              <template v-if="selectedPointId !== job.id">
+                <div class="fg-branding-red text-ellipsis">{{ job.customer_name }}</div>
+                <div class="text-xs mt-1">{{ job.address }}</div>
+              </template>
+              <div class="btn-group btn-group-block mt-3">
                 <button
                   type="button"
                   class="btn"
+                  :disabled="selectedPointId === job.id"
                   @click="updatePoint(job)"
                 >
                   <i class="fas fa-edit fg-branding-red mr-2"></i> Ubah
@@ -57,6 +85,7 @@
                 <button
                   type="button"
                   class="btn btn-red"
+                  :disabled="selectedPointId === job.id"
                   @click="deletePoint(job.id)"
                 >
                   <i class="fas fa-trash mr-2"></i> Hapus
@@ -66,26 +95,35 @@
           </div>
         </li>
         <li v-if="!hasJobsPoint" ref="jobCard" class="route-plan__list__item">
-          <div class="route-plan__list__item__icon"><i class="fas fa-circle"></i></div>
+          <div class="route-plan__list__item__icon">
+            <i class="fas fa-circle"></i>
+          </div>
           <div class="route-plan__list__item__card">
             <div class="font-weight-bold mb-4">
-              <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik-Titik Pengantaran
+              <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik-Titik
+              Pengantaran
             </div>
             <button
               type="button"
               class="btn btn-block"
-              :disabled="!hasStartPoint"
-              @click="importJobPoints()"
+              :disabled="!hasStartPoint || isLoadingImport"
+              @click="importPoints()"
             >
-              <i class="fas fa-file-import fg-branding-red mr-2"></i> Import Dari Daftar Antar
+              <i v-if="isLoadingImport" class="fas fa-sync-alt fa-spin fg-branding-red mr-2"></i>
+              <i v-else class="fas fa-file-import fg-branding-red mr-2"></i>
+              Import Dari Daftar Antar
             </button>
           </div>
         </li>
         <li v-if="showJobCard" ref="jobCard" class="route-plan__list__item">
-          <div class="route-plan__list__item__icon"><i class="fas fa-circle"></i></div>
+          <div class="route-plan__list__item__icon">
+            <i class="fas fa-circle"></i>
+          </div>
           <div class="route-plan__list__item__card">
             <div class="font-weight-bold mb-4">
-              <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{ pointJobs.length + 1 }}
+              <i class="fas fa-map-marker fg-branding-red mr-2"></i> Titik #{{
+                pointJobs.length + 1
+              }}
             </div>
             <button
               type="button"
@@ -102,8 +140,12 @@
             <button
               type="button"
               class="btn"
-              :disabled="showJobCard || !hasJobsPoint || (hasDraftPoint && draftType === 'jobs')"
-              @click="setShowJobCard()"
+              :disabled="
+                showJobCard ||
+                !hasJobsPoint ||
+                (hasDraftPoint && draftType === 'jobs')
+              "
+              @click="addJobPoint()"
             >
               <i class="fas fa-plus fg-branding-red mr-2"></i> Tambah Titik
             </button>
@@ -112,21 +154,30 @@
               type="button"
               class="btn btn-blue"
               :disabled="!hasJobsPoint || hasDraftPoint"
-              @click="setShowFinishCard()"
+              @click="setFinishPoint()"
             >
               <i class="fas fa-map-marker mr-2"></i> Titik Akhir
             </button>
           </div>
         </li>
-        <li v-if="showFinishCard" ref="finishCard" class="route-plan__list__item">
-          <div class="route-plan__list__item__icon finish"><i class="fas fa-circle"></i></div>
+        <li
+          v-if="showFinishCard"
+          ref="finishCard"
+          class="route-plan__list__item"
+        >
+          <div class="route-plan__list__item__icon finish">
+            <i class="fas fa-circle"></i>
+          </div>
           <div class="route-plan__list__item__card finish">
-            <div class="font-weight-bold mb-4"><i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik Akhir</div>
+            <div class="font-weight-bold mb-4">
+              <i class="fas fa-map-marker fg-branding-blue mr-2"></i> Titik
+              Akhir
+            </div>
             <div v-if="hasFinishPoint" class="mt-2 text-sm">
               <div>{{ pointFinish.address }}</div>
               <button
                 type="button"
-                class="btn btn-block mt-2"
+                class="btn btn-block mt-3"
                 @click="updatePoint(pointFinish)"
               >
                 <i class="fas fa-edit fg-branding-blue mr-2"></i> Ubah
@@ -137,9 +188,15 @@
                 type="button"
                 class="btn btn-block"
                 :disabled="!hasJobsPoint"
-                @click="createPoint('finish', { lat: pointStart.lat, lng: pointStart.lng })"
+                @click="
+                  createPoint('finish', {
+                    lat: pointStart.lat,
+                    lng: pointStart.lng,
+                  })
+                "
               >
-                <i class="fas fa-copy fg-branding-blue mr-2"></i> Seperti Titik Awal
+                <i class="fas fa-copy fg-branding-blue mr-2"></i> Seperti Titik
+                Awal
               </button>
               <button
                 type="button"
@@ -147,7 +204,8 @@
                 :disabled="!hasJobsPoint"
                 @click="createPoint('finish')"
               >
-                <i class="fas fa-map fg-branding-blue mr-2"></i> Pilih Lewat Peta
+                <i class="fas fa-map fg-branding-blue mr-2"></i> Pilih Lewat
+                Peta
               </button>
             </template>
           </div>
@@ -156,7 +214,12 @@
           <button
             type="button"
             class="btn btn-block btn-blue"
-            :disabled="!hasStartPoint || !hasFinishPoint || !hasJobsPoint || hasDraftPoint"
+            :disabled="
+              !hasStartPoint ||
+              !hasFinishPoint ||
+              !hasJobsPoint ||
+              hasDraftPoint
+            "
             @click="generatePlan()"
           >
             <i class="fas fa-route mr-2"></i> Rute Perjalanan
@@ -172,7 +235,7 @@
         :class="{
           'btn-green': draftType === 'start',
           'btn-blue': draftType === 'finish',
-          'btn-red': draftType === 'jobs'
+          'btn-red': draftType === 'jobs',
         }"
         @click="savePoint()"
       >
@@ -184,7 +247,7 @@
 
 <script>
 import get from 'lodash/get'
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapMutations, mapGetters, mapActions } from 'vuex'
 
 export default {
   name: 'RoutePlan',
@@ -196,13 +259,23 @@ export default {
   },
   computed: {
     ...mapState('points', [
-      'points', 'pointDraft', 'selectedPointId', 'showJobCard', 'showFinishCard'
+      'points',
+      'pointDraft',
+      'selectedPointId',
+      'showJobCard',
+      'showFinishCard',
+      'isLoadingImport'
     ]),
     ...mapGetters('points', [
-      'draftType', 'isDrafting', 'hasDraftPoint', 'pointJobs', 'pointStart', 'pointFinish', 'hasJobsPoint', 'hasStartPoint', 'hasFinishPoint'
-    ]),
-    ...mapGetters('routes', [
-      'hasRoutes'
+      'draftType',
+      'isDrafting',
+      'hasDraftPoint',
+      'pointJobs',
+      'pointStart',
+      'pointFinish',
+      'hasJobsPoint',
+      'hasStartPoint',
+      'hasFinishPoint'
     ]),
     mapLibrary() {
       return this.$store.state.mapLibrary
@@ -215,11 +288,17 @@ export default {
   },
   methods: {
     ...mapMutations('points', [
-      'setPointDraft', 'setPoints', 'setSelectedPointId'
+      'setPointDraft',
+      'setPoints',
+      'unsetPoints',
+      'setSelectedPointId',
+      'setShowJobCard',
+      'setShowFinishCard'
     ]),
+    ...mapActions('points', ['importJobPoints']),
     async getCurrentLocation(callback) {
       if (navigator.geolocation) {
-        const { coords } = await new Promise(function(resolve, reject) {
+        const { coords } = await new Promise(function (resolve, reject) {
           navigator.geolocation.getCurrentPosition(resolve, reject)
         })
 
@@ -248,7 +327,16 @@ export default {
         return ''
       }
     },
-    setShowJobCard() {
+    async importPoints() {
+      const points = await this.importJobPoints()
+
+      this.$nextTick(() => {
+        points.forEach(point => {
+          this.$nuxt.$emit(`${this.mapId}:addMarker`, point)
+        })
+      })
+    },
+    addJobPoint() {
       this.setShowJobCard(true)
       this.$nextTick(() => {
         setTimeout(() => {
@@ -258,7 +346,7 @@ export default {
         })
       })
     },
-    setShowFinishCard() {
+    setFinishPoint() {
       this.setShowFinishCard(true)
       this.$nextTick(() => {
         setTimeout(() => {
@@ -297,12 +385,36 @@ export default {
         this.createPoint(type, $event)
       })
     },
-    importJobPoints() {
-      console.log('import')
+    updatePoint(point) {
+      const index = this.points.findIndex((p) => p.id === point.id)
+
+      if (index > -1) {
+        this.setSelectedPointId(point.id)
+        this.setPointDraft({
+          ...point
+        })
+
+        this.$nextTick(() => {
+          this.$nuxt.$emit(`${this.mapId}:addMarker`, this.pointDraft)
+        })
+
+        this.$nuxt.$emit(`${this.mapId}:addListener`, 'click', ($event) => {
+          this.createPoint(this.pointDraft.type, $event)
+        })
+      }
     },
-    savePoint() {
+    async savePoint() {
       this.$nuxt.$emit(`${this.mapId}:removeListener`, 'click')
-      this.setPoints([this.pointDraft])
+
+      if (this.selectedPointId) {
+        await this.setPoints(this.pointDraft)
+      } else {
+        await this.setPoints([this.pointDraft])
+      }
+
+      console.log(this.points)
+      console.log(this.pointJobs)
+
       this.setSelectedPointId(null)
 
       if (this.pointDraft.type === 'jobs') {
@@ -343,7 +455,8 @@ export default {
           setTimeout(() => {
             if (this.$refs.routePlan) {
               this.$refs.routePlan.scrollTo({
-                top: this.$refs.routePlan.scrollHeight, behavior: 'smooth'
+                top: this.$refs.routePlan.scrollHeight,
+                behavior: 'smooth'
               })
             }
           })
@@ -420,14 +533,14 @@ export default {
           width: 2px;
           height: 50%;
           background: #fff;
-          content: "";
+          content: '';
         }
       }
 
       &__card {
         flex-grow: 1;
         border: 1px solid #ddd;
-        border-radius: .5rem;
+        border-radius: 0.5rem;
         padding: 1rem;
         color: #333;
 

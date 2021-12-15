@@ -1,3 +1,5 @@
+import cloneDeep from 'lodash/cloneDeep'
+
 export const state = () => {
   return {
     pointDraft: {
@@ -12,7 +14,8 @@ export const state = () => {
     points: [],
     selectedPointId: null,
     showJobCard: false,
-    showFinishCard: false
+    showFinishCard: false,
+    isLoadingImport: false
   }
 }
 
@@ -35,12 +38,26 @@ export const mutations = {
       }
     }
   },
+  unsetPoints: (state, index) => {
+    state.points.splice(index, 1)
+  },
   setPoints: (state, data) => {
     if (data) {
-      state.points = [
-        ...state.points,
-        ...data
-      ]
+      if (data.id) {
+        const points = cloneDeep(state.points)
+        const index = state.points.findIndex(point => point.id === data.id)
+        console.log('here', index)
+        if (index > -1) {
+          points[index] = { ...data }
+          state.points = points
+        }
+        console.log('here', index)
+      } else {
+        state.points = [
+          ...state.points,
+          ...data
+        ]
+      }
     } else {
       state.points = []
     }
@@ -53,6 +70,9 @@ export const mutations = {
   },
   setShowFinishCard: (state, data) => {
     state.showFinishCard = !!data
+  },
+  setIsLoadingImport: (state, data) => {
+    state.isLoadingImport = !!data
   }
 }
 
@@ -90,5 +110,28 @@ export const getters = {
   getPointJobIndexById: state => (id) => {
     const jobs = state.points.filter(point => point.type === 'jobs')
     return jobs.findIndex(point => point.id === id)
+  }
+}
+
+export const actions = {
+  importJobPoints({ commit }) {
+    commit('setIsLoadingImport', true)
+
+    const sampleJobs = require('~/static/sampleJobs.json')
+    const payload = sampleJobs.map(job => {
+      return {
+        id: new Date().getTime() + job.id,
+        customer_name: job.name,
+        shipment_number: job.shipment_number,
+        type: 'jobs',
+        lat: job.latitude,
+        lng: job.longitude,
+        address: job.address
+      }
+    })
+
+    commit('setIsLoadingImport', true)
+    commit('setPoints', payload)
+    return payload
   }
 }

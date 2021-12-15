@@ -1,9 +1,14 @@
 // Import
 @import './_variables';
+@import './_mixins';
 
 // Text
 .text-disabled {
   color: #999;
+}
+
+.text-ellipsis {
+  @include ellipsis;
 }
 
 // Text Size

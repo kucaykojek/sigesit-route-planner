@@ -30,7 +30,7 @@
         </client-only>
       </div>
     </main>
-    <QRScanner v-if="isShowingQrScanner" @result="handleQrResult($event)" />
+    <QrScanner v-if="isShowingQrScanner" @result="handleQrResult($event)" />
   </div>
 </template>
 
