@@ -198,7 +198,6 @@ export default {
       this.polyline = []
     },
     toggleMarkerPopup(id) {
-      console.log(id, get(this.marker, `[${id}].marker`))
       if (get(this.marker, `[${id}].marker`) && get(this.marker, `[${id}].infowindow`)) {
         get(this.marker, `[${id}].infowindow`).open({
           anchor: get(this.marker, `[${id}].marker`),
