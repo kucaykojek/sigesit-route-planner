@@ -65,12 +65,16 @@
               Titik #{{ jobIndex + 1 }}
               <template v-if="selectedPointId !== job.id">
                 <span class="fg-gray">-</span>
-                <span class="font-weight-normal text-sm">NO. RESI: <strong>{{ job.shipment_number }}</strong></span>
+                <span class="font-weight-normal text-sm"
+                  >NO. RESI: <strong>{{ job.shipment_number }}</strong></span
+                >
               </template>
             </div>
             <div class="mt-2 text-sm">
               <template v-if="selectedPointId !== job.id">
-                <div class="fg-branding-red text-ellipsis">{{ job.customer_name }}</div>
+                <div class="fg-branding-red text-ellipsis">
+                  {{ job.customer_name }}
+                </div>
                 <div class="text-xs mt-1">{{ job.address }}</div>
               </template>
               <div class="btn-group btn-group-block mt-3">
@@ -109,7 +113,10 @@
               :disabled="!hasStartPoint || isLoadingImport"
               @click="importPoints()"
             >
-              <i v-if="isLoadingImport" class="fas fa-sync-alt fa-spin fg-branding-red mr-2"></i>
+              <i
+                v-if="isLoadingImport"
+                class="fas fa-sync-alt fa-spin fg-branding-red mr-2"
+              ></i>
               <i v-else class="fas fa-file-import fg-branding-red mr-2"></i>
               Import Dari Daftar Antar
             </button>
@@ -218,11 +225,17 @@
               !hasStartPoint ||
               !hasFinishPoint ||
               !hasJobsPoint ||
-              hasDraftPoint
+              hasDraftPoint ||
+              isLoadingRoute
             "
             @click="generatePlan()"
           >
-            <i class="fas fa-route mr-2"></i> Rute Perjalanan
+            <i
+              v-if="isLoadingRoute"
+              class="fas fa-sync-alt fa-spin mr-2"
+            ></i>
+            <i v-else class="fas fa-route mr-2"></i>
+            Rute Perjalanan
           </button>
         </li>
       </ul>
@@ -277,6 +290,7 @@ export default {
       'hasStartPoint',
       'hasFinishPoint'
     ]),
+    ...mapState('routes', ['lines', 'isLoadingRoute']),
     mapLibrary() {
       return this.$store.state.mapLibrary
     }
@@ -296,6 +310,7 @@ export default {
       'setShowFinishCard'
     ]),
     ...mapActions('points', ['importJobPoints']),
+    ...mapActions('routes', ['generateRoutes']),
     async getCurrentLocation(callback) {
       if (navigator.geolocation) {
         const { coords } = await new Promise(function (resolve, reject) {
@@ -331,7 +346,7 @@ export default {
       const points = await this.importJobPoints()
 
       this.$nextTick(() => {
-        points.forEach(point => {
+        points.forEach((point) => {
           this.$nuxt.$emit(`${this.mapId}:addMarker`, point)
         })
       })
@@ -412,9 +427,6 @@ export default {
         await this.setPoints([this.pointDraft])
       }
 
-      console.log(this.points)
-      console.log(this.pointJobs)
-
       this.setSelectedPointId(null)
 
       if (this.pointDraft.type === 'jobs') {
@@ -467,8 +479,19 @@ export default {
       this.$emit('save')
     },
     async generatePlan() {
-      // await this.generateRoutes()
-      // await this.generateLines()
+      try {
+        await this.generateRoutes()
+
+        this.$nextTick(() => {
+          this.$nuxt.$emit(`${this.mapId}:addPolyline`, this.lines)
+        })
+      } catch (error) {
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal mendapatkan rute optimal'
+        })
+      }
     }
   }
 }

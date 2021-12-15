@@ -46,12 +46,11 @@ export const mutations = {
       if (data.id) {
         const points = cloneDeep(state.points)
         const index = state.points.findIndex(point => point.id === data.id)
-        console.log('here', index)
+
         if (index > -1) {
           points[index] = { ...data }
           state.points = points
         }
-        console.log('here', index)
       } else {
         state.points = [
           ...state.points,

@@ -31,6 +31,7 @@ module.exports = {
     quotes: ['error', 'single'],
     semi: ['error', 'never'],
     'import/no-named-as-default': 0,
-    'import/no-named-default': 0
+    'import/no-named-default': 0,
+    'no-useless-catch': 'off'
   }
 }

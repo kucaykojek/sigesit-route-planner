@@ -1,3 +1,5 @@
+import get from 'lodash/get'
+
 export default {
   data() {
     return {
@@ -5,6 +7,7 @@ export default {
       mapElement: null,
       mapClickListener: null,
       marker: {},
+      polyline: [],
       realtimeMarker: null,
       realtimeMarkerTimeout: null
     }
@@ -29,6 +32,18 @@ export default {
     })
     this.$nuxt.$on(`${this.mapId}:addMarker`, (data) => {
       this.addMarker(data)
+    })
+    this.$nuxt.$on(`${this.mapId}:addPolyline`, (data) => {
+      this.addPolyline(data)
+    })
+    this.$nuxt.$on(`${this.mapId}:removePolyline`, () => {
+      this.removePolyline()
+    })
+    this.$nuxt.$on(`${this.mapId}:setBound`, (data) => {
+      this.setBound(data)
+    })
+    this.$nuxt.$on(`${this.mapId}:toggleMarkerPopup`, (id) => {
+      this.toggleMarkerPopup(id)
     })
   },
   methods: {
@@ -131,7 +146,7 @@ export default {
           this.mapElement.setCenter(marker.getPosition())
           this.mapElement.setZoom(17)
           marker.addListener('click', (e) => {
-            this.toggleInfoWindow(marker, infowindow)
+            this.toggleMarkerPopup(data.id)
           })
 
           this.marker[data.id] = { marker, infowindow }
@@ -154,12 +169,53 @@ export default {
       this.mapLibrary.event.clearInstanceListeners(marker)
       marker.setMap(null)
     },
-    toggleInfoWindow(marker, infowindow) {
-      infowindow.open({
-        anchor: marker,
-        map: this.map,
-        shouldFocus: false
+    addPolyline(lines) {
+      this.polyline = []
+      lines.forEach(line => {
+        let polyline = null
+        if (line.coordinates.length) {
+          polyline = new this.mapLibrary.Polyline({
+            path: line.coordinates,
+            geodesic: true,
+            strokeColor: '#B52125',
+            strokeOpacity: .5,
+            strokeWeight: 3
+          })
+
+          polyline.setMap(this.mapElement)
+
+          this.polyline.push(polyline)
+        }
       })
+    },
+    removePolyline() {
+      this.polyline.forEach(line => {
+        if (line) {
+          line.setMap(null)
+        }
+      })
+
+      this.polyline = []
+    },
+    toggleMarkerPopup(id) {
+      console.log(id, get(this.marker, `[${id}].marker`))
+      if (get(this.marker, `[${id}].marker`) && get(this.marker, `[${id}].infowindow`)) {
+        get(this.marker, `[${id}].infowindow`).open({
+          anchor: get(this.marker, `[${id}].marker`),
+          map: this.map,
+          shouldFocus: false
+        })
+      }
+    },
+    setBound(data) {
+      const bounds = new this.mapLibrary.LatLngBounds()
+
+      data.forEach(point => {
+        const place = new this.mapLibrary.LatLng(point.lat, point.lng)
+        bounds.extend(place)
+      })
+
+      this.mapElement.fitBounds(bounds)
     }
   }
 }

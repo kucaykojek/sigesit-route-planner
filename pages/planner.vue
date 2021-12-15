@@ -14,7 +14,7 @@
         </CommonSheet>
 
         <!-- Route Result -->
-        <RouteResult v-else-if="!isDrafting && !isShowingMap" @open:map="toggleMap()" />
+        <RouteResult v-else-if="!isDrafting && !isShowingMap && !isLoadingRoute" :map-id="mapId" @open:map="toggleMap($event)" />
       </transition>
     </aside>
     <main v-show="!isShowingQrScanner || isShowingMap">
@@ -53,14 +53,14 @@ export default {
     }
   },
   computed: {
-    ...mapState('points', ['pointDraft', 'showJobCard', 'showFinishCard']),
+    ...mapState('points', ['points', 'pointDraft', 'showJobCard', 'showFinishCard']),
     ...mapGetters('points', [
       'draftType', 'isDrafting', 'hasDraftPoint', 'hasJobsPoint', 'hasStartPoint', 'hasFinishPoint'
     ]),
     ...mapGetters('routes', ['hasRoutes']),
     mapMasking() {
       let masking = ''
-      if (!this.isDrafting) {
+      if (!this.isDrafting && !this.hasRoutes) {
         if (!this.hasStartPoint) {
           masking = 'Silakan klik tombol Lokasi Saya atau tombol Pilih Lewat Peta'
         } else if (this.showJobCard) {
@@ -158,11 +158,11 @@ export default {
           title: 'Tutup Peta'
         })
 
-        // if (get(data, 'marker') && get(data, 'infowindow')) {
-        //   this.toggleInfoWindow(get(data, 'marker'), get(data, 'infowindow'))
-        // } else {
-        //   this.setBounds()
-        // }
+        if (get(data, 'id')) {
+          this.$nuxt.$emit(`${this.mapId}:toggleMarkerPopup`, get(data, 'id'))
+        } else {
+          this.$nuxt.$emit(`${this.mapId}:setBound`, this.points)
+        }
       }
     }
   }

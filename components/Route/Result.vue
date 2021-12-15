@@ -28,15 +28,28 @@
             'start': routeIndex === 0,
             'finish': routeIndex === routes.length - 1
           }"
-          @click="toggleMap(getPointById(route.id))"
+          @click="$emit('open:map', getPointById(route.id))"
         >
           <div class="font-weight-bold mb-1 text-xs">
             <span v-if="getPointById(route.id).type === 'start'">Titik Awal</span>
             <span v-else-if="getPointById(route.id).type === 'finish'">Titik Akhir</span>
-            <span v-else>Titik #{{ getPointJobIndexById(route.id) + 1 }}</span>
+            <template v-else>
+              <span>Titik #{{ getPointJobIndexById(route.id) + 1 }}</span>
+              <span class="fg-gray">-</span>
+              <span class="font-weight-normal">NO. RESI: <strong>{{ getPointById(route.id).shipment_number }}</strong></span>
+            </template>
           </div>
 
-          {{ getPointById(route.id).address }}
+          <div class="text-sm fg-branding-red font-weight-bold">{{ getPointById(route.id).customer_name }}</div>
+          <div class="text-xs">{{ getPointById(route.id).address }}</div>
+
+          <button
+            v-if="getPointById(route.id).type === 'jobs'"
+            type="button"
+            class="btn btn-block mt-3"
+          >
+            <i class="fas fa-phone fg-branding-red mr-2"></i> Telepon
+          </button>
         </a>
       </li>
     </ul>
@@ -45,16 +58,28 @@
         <button
           type="button"
           class="btn"
+          :disabled="isLoadingRoute || isLoadingLine"
           @click="updatePlan()"
         >
-          <i class="fas fa-edit fg-branding-red mr-2"></i> Ubah Perjalanan
+          <i
+            v-if="isLoadingRoute || isLoadingLine"
+            class="fas fa-sync-alt fa-spin fg-branding-red mr-2"
+          ></i>
+          <i v-else class="fas fa-edit fg-branding-red mr-2"></i>
+          Ubah Perjalanan
         </button>
         <button
           type="button"
           class="btn btn-red"
+          :disabled="isLoadingRoute || isLoadingLine"
           @click="$emit('open:map')"
         >
-          <i class="fas fa-map-marker mr-2"></i> Lihat Peta
+          <i
+            v-if="isLoadingRoute || isLoadingLine"
+            class="fas fa-sync-alt fa-spin mr-2"
+          ></i>
+          <i v-else class="fas fa-map-marker mr-2"></i>
+          Lihat Peta
         </button>
       </div>
     </div>
@@ -62,28 +87,46 @@
 </template>
 
 <script>
-import { mapState, mapMutations, mapGetters } from 'vuex'
+import { mapState, mapMutations, mapGetters, mapActions } from 'vuex'
 
 import { formatNumber } from '~/helpers/formatter'
 
 export default {
   name: 'RouteResult',
+  props: {
+    mapId: {
+      type: String,
+      required: true
+    }
+  },
   computed: {
-    ...mapState('routes', ['routes', 'lines']),
-    ...mapGetters('routes', ['hasRoutes'])
+    ...mapState('routes', ['routes', 'lines', 'isLoadingRoute', 'isLoadingLine']),
+    ...mapGetters('routes', ['hasRoutes']),
+    ...mapGetters('points', ['getPointById', 'getPointJobIndexById'])
   },
   methods: {
-    ...mapGetters('points', ['getPointById', 'getPointJobIndexById']),
     ...mapMutations('routes', ['setRoutes', 'setLines']),
+    ...mapActions('routes', ['deleteRoutes']),
     formatDistance(distance) {
       return formatNumber((distance / 1000), '0.00') + 'KM'
     },
     formatDuration(duration) {
       return formatNumber((duration / 60), '0') + ' menit'
     },
-    updatePlan() {
-      // this.deleteRoutes()
-      // this.deleteLines()
+    async updatePlan() {
+      try {
+        await this.deleteRoutes()
+
+        this.$nextTick(() => {
+          this.$nuxt.$emit(`${this.mapId}:removePolyline`, this.lines)
+        })
+      } catch (error) {
+        this.$swal({
+          icon: 'error',
+          title: 'Error',
+          text: 'Gagal mendapatkan rute optimal'
+        })
+      }
     }
   }
 }
@@ -97,15 +140,24 @@ export default {
   height: calc(100vh - #{$header-height * 2}) !important;
   margin-top: $header-height;
   margin-bottom: $header-height;
-  padding: 1.5rem 1.5rem 0 calc(1.5rem + 7.5px);
   overflow: hidden;
-  overflow-y: auto;
   background: #fff;
 
   &__list {
-    min-height: 100%;
-    border-left: 2px solid #ddd;
-    padding: 1.5rem 0;
+    height: 100%;
+    padding: 1.5rem 1.5rem 1.5rem calc(1.5rem + 7.5px);
+    overflow: hidden;
+    overflow-y: auto;
+
+    &::before {
+      position: absolute;
+      height: 100%;
+      width: 2px;
+      background: #ddd;
+      top: 0;
+      left: calc(1.5rem + 5.5px);
+      content: "";
+    }
 
     &__item {
       position: relative;
@@ -192,6 +244,20 @@ export default {
         }
       }
     }
+  }
+
+  &__footer {
+    position: fixed;
+    z-index: 999;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: #{$header-height + 10px};
+    background: #fff;
+    display: flex;
+    align-items: center;
+    padding: 0 .75rem;
+    box-shadow: 0 -1px 4px rgba($color: #000000, $alpha: .2);
   }
 }
 </style>
